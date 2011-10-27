@@ -31,27 +31,29 @@ namespace VVVV.Nodes
 		[Input("values")]
 		IDiffSpread<bool> PinValues;
 		
-		[Input("report analog pins")]
+		[Input("report analog pins",IsSingle = true)]
 		IDiffSpread<bool> ReportAnalogPins;
 		
 		
-		[Input("ReportDigitalPins")]
+		[Input("ReportDigitalPins",IsSingle = true)]
 		IDiffSpread<bool> ReportDigitalPins;
 		
 		//// Use a default SamplingRate of 40ms
-		[Input("Samplerate", MinValue = 0, DefaultValue = 40)]
+		[Input("Samplerate", MinValue = 0, DefaultValue = 40,IsSingle = true)]
 		IDiffSpread<int> Samplerate;
 		
 		
-		[Input("ReportFirmwareVersion")]
+		[Input("ReportFirmwareVersion",IsSingle = true)]
 		IDiffSpread<bool> ReportFirmwareVersion;
 		
-		[Input("ResetSystem")]
+		[Input("ResetSystem",IsSingle = true)]
 		IDiffSpread<bool> ResetSystem;
 		
+		[Input("SendOnCreate", Visibility = PinVisibility.Hidden, IsSingle = true, DefaultValue = 1)]
+		IDiffSpread<bool> SendOnCreate;
 		
-		
-		
+		[Input("DigitalPins", IsPinGroup = true, Visibility = PinVisibility.OnlyInspector)]
+		IDiffSpread<ISpread<PinModes>> DigitalPins;
 		
 		
 		///
@@ -69,6 +71,15 @@ namespace VVVV.Nodes
 		public void Evaluate(int SpreadMax)
 		{
 			string command_out = "";
+			
+			if(DigitalPins.IsChanged)
+			{
+				for(int i=0; i<DigitalPins.SliceCount; i++)
+				{
+					command_out += SetPinModeCommand(DigitalPins[i][0],i);
+				}
+			}
+			
 			if (ReportAnalogPins.IsChanged)
 			{
 				// TODO: It should not be a fixed number of pins, later versions
@@ -86,12 +97,12 @@ namespace VVVV.Nodes
 			if(Samplerate.IsChanged)
 			{
 				if (ReportAnalogPins[0])
-					command_out += SetAnaPinReportingForRange(6,false);
+				command_out += SetAnaPinReportingForRange(6,false);
 				
 				command_out += GetSamplerateCommand(Samplerate[0]);
 				
 				if (ReportAnalogPins[0])
-					command_out += SetAnaPinReportingForRange(6,ReportAnalogPins[0]);
+				command_out += SetAnaPinReportingForRange(6,ReportAnalogPins[0]);
 			}
 			
 			if(ResetSystem.IsChanged)
@@ -115,6 +126,16 @@ Did something change at all?
 		/* This is a shortcut to encode byte arrays, which also contain bytes higer than 127 */
 		static string Encode(byte[] bytes) {return Encoding.GetEncoding("Latin1").GetString(bytes);}
 		
+		 string SetPinModeCommand(PinModes mode, int pin)
+		{
+			byte[] cmd = {
+				FirmataCommands.SETPINMODE,
+				(byte) pin,
+				(byte) mode
+			};
+			FLogger.Log(LogType.Debug,mode.ToString());
+			return Encode(cmd);
+		}
 		
 		static string GetSamplerateCommand(int rate)
 		{
@@ -210,16 +231,7 @@ Did something change at all?
 		#endregion
 		
 	}
-	
-	public enum PinModes
-	{
-		INPUT,
-		OUTPUT,
-		ANALOG,
-		PWM,
-		SERVO
-	}
-	
+
 	#region DEFINITIONS
 	public static class FirmataCommands
 	{
@@ -258,20 +270,16 @@ Did something change at all?
 		public const byte SAMPLING_INTERVAL = 0x7A;
 	}
 	
-	public static class PinModeBytes
+	public enum PinModes
 	{
-		public const byte INPUT = 0x00;
-		public const byte OUTPUT = 0x01;
+		INPUT = 0x00,
+		OUTPUT = 0x01,
 		/// <summary>
 		/// This is not implemented in the standard firmata program
 		/// </summary>
-		public const byte ANALOG = 0x02;
-		public const byte PWM = 0x03;
-		/// <summary>
-		/// This is not implemented in the standard firmata program
-		/// </summary>
-		public const byte SERVO = 0x04;
-		
+		// ANALOG = 0x02,
+		PWM = 0x03,
+		SERVO = 0x04,
 	}
 	
 	public static class ATMegaPorts
