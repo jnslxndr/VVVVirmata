@@ -7,12 +7,7 @@ using VVVV.PluginInterfaces.V1;
 using VVVV.PluginInterfaces.V2;
 using VVVV.Utils.VColor;
 using VVVV.Utils.VMath;
-
 using VVVV.Core.Logging;
-
-/* hello from subversion */
-
-
 #endregion usings
 
 namespace VVVV.Nodes
@@ -21,8 +16,8 @@ namespace VVVV.Nodes
 	[PluginInfo(Name = "VirmataEncoder",
 	Category = "String",
 	Version = "0.1",
-	Help = "Encodes Messages for Firmata (Protocol v2.2)",
-	Tags = "String")]
+	Help = "Encodes Pins,Values and Commands for Firmata (Protocol v2.2)",
+	Tags = "String,Devices")]
 	#endregion PluginInfo
 	
 	public class VirmataEncoder : IPluginEvaluate
@@ -36,7 +31,6 @@ namespace VVVV.Nodes
 		[Input("report analog pins",IsSingle = true)]
 		IDiffSpread<bool> ReportAnalogPins;
 		
-		
 		[Input("ReportDigitalPins",IsSingle = true)]
 		IDiffSpread<bool> ReportDigitalPins;
 		
@@ -44,21 +38,17 @@ namespace VVVV.Nodes
 		[Input("Samplerate", MinValue = 0, DefaultValue = 40,IsSingle = true)]
 		IDiffSpread<int> Samplerate;
 		
-		
-		[Input("ReportFirmwareVersion",IsSingle = true)]
+		[Input("ReportFirmwareVersion",IsSingle = true, Visibility = PinVisibility.Hidden)]
 		IDiffSpread<bool> ReportFirmwareVersion;
 		
-		[Input("ResetSystem",IsSingle = true)]
+		[Input("ResetSystem",IsSingle = true, Visibility = PinVisibility.Hidden)]
 		IDiffSpread<bool> ResetSystem;
-
 		
-		[Input("PinModes")]
+		[Input("PinModes", DefaultEnumEntry = PinModes.INPUT)]
 		IDiffSpread<PinModes> PinModeSetup;
-		
 		
 		[Input("SendOnCreate", Visibility = PinVisibility.Hidden, IsSingle = true, DefaultValue = 1)]
 		IDiffSpread<bool> SendOnCreate;
-		
 		
 		///
 		/// OUTPUT
@@ -211,9 +201,9 @@ Did something change at all?
 		
 		
 		/* Query Firmware Name and Version
-* 0  START_SYSEX (0xF0)
-* 1  queryFirmware (0x79)
-* 2  END_SYSEX (0xF7)
+* 0	 START_SYSEX (0xF0)
+* 1	 queryFirmware (0x79)
+* 2	 END_SYSEX (0xF7)
 */
 		static string GetFirmwareVersionCommand()
 		{
@@ -317,35 +307,69 @@ Did something change at all?
 		/// digital state of the specified port
 		/// </summary>
 		public const byte TOGGLEDIGITALREPORT = 0xD0;
+		
 		/// <summary>
 		/// The distinctive value that states that this message is a digital message.
 		/// It comes as a report or as a command
 		/// </summary>
 		public const byte DIGITALMESSAGE = 0x90;
+		
 		/// <summary>
 		/// A command to change the pin mode for the specified pin
 		/// </summary>
 		public const byte SETPINMODE = 0xF4;
-		
+	
+		/// <summary>
+		/// Sysex start command
+		/// </summary>
 		public const byte SYSEX_START = 0xF0;
+		
+		/// <summary>
+		/// Sysex end command
+		/// </summary>
 		public const byte SYSEX_END = 0xF7;
 		
+		/// <summary>
+		/// Report the Firmware version
+		/// </summary>
 		public const byte REPORT_FIRMWARE_VERSION_NUM = 0x79;
 		
+		/// <summary>
+		/// Reset System Command
+		/// </summary>
 		public const byte RESET = 0xFF;
 		
+		/// <summary>
+		/// Set Samplingrate Command
+		/// </summary>
 		public const byte SAMPLING_INTERVAL = 0x7A;
 	}
 	
-	public enum PinModes
+	public static enum PinModes
 	{
-		INPUT = 0x00,
-		OUTPUT = 0x01,
 		/// <summary>
-		/// This is not implemented in the standard firmata program
+		/// Pinmode INPUT
 		/// </summary>
-		// ANALOG = 0x02,
+		INPUT = 0x00,
+
+		/// <summary>
+		/// Pinmode OUTPUT
+		/// </summary>
+		OUTPUT = 0x01,
+
+		/// <summary>
+		/// Pinmode ANALOG (This is not implemented in the standard firmata program)
+		/// </summary>
+		ANALOG = 0x02,
+		
+		/// <summary>
+		/// Pinmode PWM
+		/// </summary>
 		PWM = 0x03,
+		
+		/// <summary>
+		/// Pinmode SERVO
+		/// </summary>
 		SERVO = 0x04,
 	}
 	
