@@ -22,13 +22,13 @@ namespace VVVV.Nodes
 	{
 		#region fields & pins
 		[Input("FirmataMessage", DefaultValue = 1.0)]
-		ISpread<String> firmataMessage;
+		IDiffSpread<String> firmataMessage;
 		
 		[Output("AnalogIn")]
 		ISpread<String> analogIns;
 		
 		[Output("DigitalIn")]
-		ISpread<bool> digitalIns;
+		ISpread<int> digitalIns;
 		
 		[Import()]
 		ILogger FLogger;
@@ -40,23 +40,47 @@ namespace VVVV.Nodes
 			
 			
 			
-			if(firmataMessage.SliceCount>0)
+			if(firmataMessage.SliceCount>0 && firmataMessage.IsChanged == true )
 			{
 				byte[] ba = Encoding.GetEncoding(1252).GetBytes(firmataMessage[0]);
-				//FLogger.Log(LogType.Debug,Encoding.GetEncoding(1252).GetString(ba));
-				
+				//FLogger.Log(LogType.Debug,Convert.ToString(ba[0]));
+				//byte[] ba = System.Text.Encoding.ASCII.GetBytes(firmataMessage[0]);
 				analogIns.SliceCount = ba.Length;
 				
 				
 				for (int i = 0; i < ba.Length; i++)
-				analogIns[i] = Convert.ToString(ba[i]);
+				analogIns[i] = Convert.ToString(ba[i],16);
+			
+				int test = GetValueFromBytes(01,50);
+				digitalIns[0]=test;
+				
 			}
 			
 			
 			
-			//Encoding.GetEncoding(1252).GetString(bytes);
+			
+		
+			
+	
+			
+			
 			
 			//FLogger.Log(LogType.Debug, "hi tty!");
 		}
+		
+		
+		// Helper Functions
+		
+		
+		static int GetValueFromBytes(byte MSB, byte LSB)
+		{
+			int tempValue = MSB & 0x7F;
+			tempValue = tempValue << 7;
+			tempValue = tempValue | (LSB & 0x7F);
+			return tempValue;
+		}
+		
 	}
+	
+	
 }
