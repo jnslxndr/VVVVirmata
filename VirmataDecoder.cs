@@ -24,8 +24,11 @@ namespace VVVV.Nodes
 		[Input("FirmataMessage", DefaultValue = 1.0)]
 		ISpread<String> FInput;
 
-		[Output("Output")]
-		ISpread<double> FOutput;
+		[Output("AnalogIn")]
+		ISpread<int> analogIns;
+		
+		[Output("DigitalIn")]
+		ISpread<bool> digitalIns;
 
 		[Import()]
 		ILogger FLogger;
@@ -34,10 +37,10 @@ namespace VVVV.Nodes
 		//called when data for any output pin is requested
 		public void Evaluate(int SpreadMax)
 		{
-			FOutput.SliceCount = SpreadMax;
+			analogIns.SliceCount = SpreadMax;
 
 			for (int i = 0; i < SpreadMax; i++)
-				FOutput[i] = 1;
+				analogIns[i] = 1;
 				 
 			//FLogger.Log(LogType.Debug, "hi tty!");
 		}
