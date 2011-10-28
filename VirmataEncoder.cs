@@ -31,29 +31,33 @@ namespace VVVV.Nodes
 		/// INPUT
 		///
 		[Input("values")]
-		IDiffSpread<bool> PinValues;
+		IDiffSpread<double> PinValues;
 		
-		[Input("report analog pins")]
+		[Input("report analog pins",IsSingle = true)]
 		IDiffSpread<bool> ReportAnalogPins;
 		
 		
-		[Input("ReportDigitalPins")]
+		[Input("ReportDigitalPins",IsSingle = true)]
 		IDiffSpread<bool> ReportDigitalPins;
 		
 		//// Use a default SamplingRate of 40ms
-		[Input("Samplerate", MinValue = 0, DefaultValue = 40)]
+		[Input("Samplerate", MinValue = 0, DefaultValue = 40,IsSingle = true)]
 		IDiffSpread<int> Samplerate;
 		
 		
-		[Input("ReportFirmwareVersion")]
+		[Input("ReportFirmwareVersion",IsSingle = true)]
 		IDiffSpread<bool> ReportFirmwareVersion;
 		
-		[Input("ResetSystem")]
+		[Input("ResetSystem",IsSingle = true)]
 		IDiffSpread<bool> ResetSystem;
+
+		
+		[Input("PinModes")]
+		IDiffSpread<PinModes> PinModeSetup;
 		
 		
-		
-		
+		[Input("SendOnCreate", Visibility = PinVisibility.Hidden, IsSingle = true, DefaultValue = 1)]
+		IDiffSpread<bool> SendOnCreate;
 		
 		
 		///
@@ -71,12 +75,28 @@ namespace VVVV.Nodes
 		public void Evaluate(int SpreadMax)
 		{
 			string command_out = "";
+			
+			if(PinModeSetup.IsChanged)
+			{
+				for(int i=0; i<PinModeSetup.SliceCount; i++)
+				{
+					command_out += SetPinModeCommand(PinModeSetup[i],i);
+				}
+			}
+			
+			if (PinValues.IsChanged)
+			{
+				command_out += SetPinStates(PinValues);
+			}
+			
+			/// Set Pinreporting for analog pins
 			if (ReportAnalogPins.IsChanged)
 			{
 				// TODO: It should not be a fixed number of pins, later versions
-				command_out += SetAnaPinReportingForRange(6,ReportAnalogPins[0]);
+				command_out += SetAnalogPinReportingForRange(6,ReportAnalogPins[0]);
 			}
 			
+			/// Set Pinreporting for digital pins
 			if (ReportDigitalPins.IsChanged)
 			{
 				// TODO: Check which pin number should be reported and enable only the proper port.
@@ -88,12 +108,12 @@ namespace VVVV.Nodes
 			if(Samplerate.IsChanged)
 			{
 				if (ReportAnalogPins[0])
-					command_out += SetAnaPinReportingForRange(6,false);
+				command_out += SetAnalogPinReportingForRange(6,false);
 				
 				command_out += GetSamplerateCommand(Samplerate[0]);
 				
 				if (ReportAnalogPins[0])
-					command_out += SetAnaPinReportingForRange(6,ReportAnalogPins[0]);
+				command_out += SetAnalogPinReportingForRange(6,ReportAnalogPins[0]);
 			}
 			
 			if(ResetSystem.IsChanged)
@@ -115,8 +135,65 @@ Did something change at all?
 		
 		
 		/* This is a shortcut to encode byte arrays, which also contain bytes higer than 127 */
-		static string Encode(byte[] bytes) {return Encoding.GetEncoding("Latin1").GetString(bytes);}
+		static string Encode(byte[] bytes) {return Encoding.GetEncoding("latin1").GetString(bytes);}
 		
+		static string SetPinModeCommand(PinModes mode, int pin)
+		{
+			byte[] cmd = {
+				FirmataCommands.SETPINMODE,
+				(byte) pin,
+				(byte) mode
+			};
+			return Encode(cmd);
+		}
+		
+		byte[] PinSpreadToPorts(ISpread<double> spread)
+		{
+			int num_ports = spread.SliceCount/8 + (spread.SliceCount%8==0 ? 0 : 1);
+			byte[] bytes = new byte[num_ports];
+			for(int port_index=0; port_index<num_ports; port_index++)
+			{
+				byte port = 0x00;
+				for (int bit=0; bit<8; bit++)
+				{
+					int src_index = port_index*8+bit;
+					double val = src_index<spread.SliceCount ? spread[src_index]:0;
+					port |= (byte)((val >= 0.5 ? 1:0)<<bit);
+				}
+				bytes[port_index] = port;
+			}
+			return bytes;
+		}
+		
+		string SetPinStates(ISpread<double> values)
+		{
+			// TODO: handle PWN set pins!
+			
+			byte[] ports = PinSpreadToPorts(values);
+			List<byte> cmd = new List<byte>();
+			for(int port=0; port<ports.Length; port++)
+			{
+				byte LSB, MSB;
+				GetBytesFromValue(ports[port], out MSB, out LSB);
+				//FLogger.Log(LogType.Debug,port.ToString());
+				// We take the 4 MSB from the command type and the 4 LSB from the pin
+				
+				byte the_port = ATMegaPorts.getPortForIndex(port);
+				byte writeCommand = (byte)((uint) FirmataCommands.DIGITALMESSAGE | the_port);
+								
+				// Write the command to enable the analog output for the pin we want
+				cmd.Add(writeCommand);
+				cmd.Add(LSB);
+				cmd.Add(MSB);
+				
+				FLogger.Log(LogType.Debug,"To port({0}):",the_port);
+				FLogger.Log(LogType.Debug,Convert.ToString(writeCommand,16));
+				FLogger.Log(LogType.Debug,Convert.ToString(LSB,2));
+				FLogger.Log(LogType.Debug,Convert.ToString(MSB,2));
+				
+			}
+			return Encode(cmd.ToArray());
+		}
 		
 		static string GetSamplerateCommand(int rate)
 		{
@@ -148,7 +225,6 @@ Did something change at all?
 			return Encode(cmd);
 		}
 		
-		
 		static string GetAnalogPinReportingCommandForState(bool state,int pin)
 		{
 			byte val,command;
@@ -158,16 +234,13 @@ Did something change at all?
 			return Encode(cmd);
 		}
 		
-		static string SetAnaPinReportingForRange(int range, bool state)
+		static string SetAnalogPinReportingForRange(int range, bool state)
 		{
 			string command_out = "";
 			for(int i = 0; i<range; i++)
 			command_out += GetAnalogPinReportingCommandForState(state,i);
 			return command_out;
 		}
-		
-		
-		
 		
 		static string GetDigitalPinReportingCommandForState(bool state,int port)
 		{
@@ -178,7 +251,6 @@ Did something change at all?
 			return Encode(cmd);
 		}
 		
-		
 		static string GetResetCommand()
 		{
 			byte[] cmd = {
@@ -188,7 +260,6 @@ Did something change at all?
 			};
 			return Encode(cmd);
 		}
-		
 		
 		/// <summary>
 		/// Get the integer value that was sent using the 7-bit messages of the firmata protocol
@@ -209,17 +280,23 @@ Did something change at all?
 			LSB = (byte)(value & 0x7F);
 			MSB = (byte)((value >> 7) & 0x7F);
 		}
+		
+		/// <summary>
+		/// Send an array of boolean values indicating the state of each individual
+		/// pin and get a byte representing a port
+		/// </summary>
+		public static byte GetPortFromPinValues(bool[] pins)
+		{
+			byte port = 0;
+			for (int i = 0; i < pins.Length; i++)
+			{
+				port |= (byte) ((pins[i] ? 1 : 0) << i);
+			}
+			return port;
+		}
+		
 		#endregion
 		
-	}
-	
-	public enum PinModes
-	{
-		INPUT,
-		OUTPUT,
-		ANALOG,
-		PWM,
-		SERVO
 	}
 	
 	#region DEFINITIONS
@@ -260,24 +337,25 @@ Did something change at all?
 		public const byte SAMPLING_INTERVAL = 0x7A;
 	}
 	
-	public static class PinModeBytes
+	public enum PinModes
 	{
-		public const byte INPUT = 0x00;
-		public const byte OUTPUT = 0x01;
+		INPUT = 0x00,
+		OUTPUT = 0x01,
 		/// <summary>
 		/// This is not implemented in the standard firmata program
 		/// </summary>
-		public const byte ANALOG = 0x02;
-		public const byte PWM = 0x03;
-		/// <summary>
-		/// This is not implemented in the standard firmata program
-		/// </summary>
-		public const byte SERVO = 0x04;
-		
+		// ANALOG = 0x02,
+		PWM = 0x03,
+		SERVO = 0x04,
 	}
 	
 	public static class ATMegaPorts
 	{
+		/// <summary>
+		/// This port represents digital pins 0..7. Pins 0 and 1 are reserved for communication
+		/// </summary>
+		public const byte PORTD = 0;
+		
 		/// <summary>
 		/// This port represents digital pins 8..13. 14 and 15 are for the crystal
 		/// </summary>
@@ -288,10 +366,16 @@ Did something change at all?
 		/// </summary>
 		public const byte PORTC = 2;
 		
-		/// <summary>
-		/// This port represents digital pins 0..7. Pins 0 and 1 are reserved for communication
-		/// </summary>
-		public const byte PORTD = 0;
+		public static byte getPortForIndex(int index)
+		{
+			switch (index)
+			{
+				case 0: return PORTD;
+				case 1: return PORTB;
+				case 2: return PORTC;
+			}
+			return 0;
+		}
 	}
 	
 	#endregion
