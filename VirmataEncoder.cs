@@ -44,7 +44,7 @@ namespace VVVV.Nodes
 		[Input("ResetSystem",IsSingle = true, Visibility = PinVisibility.Hidden)]
 		IDiffSpread<bool> ResetSystem;
 		
-		[Input("PinModes", DefaultEnumEntry = PinModes.INPUT)]
+		[Input("PinModes", DefaultEnumEntry = "INPUT")]
 		IDiffSpread<PinModes> PinModeSetup;
 		
 		[Input("SendOnCreate", Visibility = PinVisibility.Hidden, IsSingle = true, DefaultValue = 1)]
@@ -345,7 +345,7 @@ Did something change at all?
 		public const byte SAMPLING_INTERVAL = 0x7A;
 	}
 	
-	public static enum PinModes
+	public enum PinModes
 	{
 		/// <summary>
 		/// Pinmode INPUT
