@@ -77,7 +77,7 @@ namespace VVVV.Nodes
 			
 			if (PinValues.IsChanged)
 			{
-				command_out += SetPinStates(PinValues);
+				command_out += SetPinStates(PinValues,PinModeSetup);
 			}
 			
 			/// Set Pinreporting for analog pins
@@ -91,6 +91,7 @@ namespace VVVV.Nodes
 			if (ReportDigitalPins.IsChanged)
 			{
 				// TODO: Check which pin number should be reported and enable only the proper port.
+				// TODO: It could work like: fi spread.slicecount==1 do all, else do specific pins
 				command_out += GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTB);
 				command_out += GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTC);
 				command_out += GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTD);
@@ -130,6 +131,13 @@ Did something change at all?
 			/// Use ANSI Encoding!
 			return Encoding.GetEncoding(1252).GetString(bytes);
 		}
+		
+		static byte getBitMaskForPinsInMode(PinModes mode)
+		{
+			// TODO Implement!
+			return 0xFF;
+		}
+		
 		static string SetPinModeCommand(PinModes mode, int pin)
 		{
 			byte[] cmd = {
@@ -140,7 +148,7 @@ Did something change at all?
 			return Encode(cmd);
 		}
 		
-		static byte[] PinSpreadToPorts(ISpread<double> spread)
+		byte[] PinSpreadToPorts(ISpread<double> spread, IDiffSpread<PinModes> modes)
 		{
 			int num_ports = spread.SliceCount/8 + (spread.SliceCount%8==0 ? 0 : 1);
 			byte[] bytes = new byte[num_ports];
@@ -151,7 +159,9 @@ Did something change at all?
 				{
 					int src_index = port_index*8+bit;
 					double val = src_index<spread.SliceCount ? spread[src_index]:0;
-					port |= (byte)((val >= 0.5 ? 1:0)<<bit);
+					/// Only set if pin is configured as output, so get the mode
+					int mode = src_index>=modes.SliceCount ? 0x00 : modes[src_index] == PinModes.OUTPUT ? 0x01:0x00; 
+					port |= (byte)((val >= 0.5 && mode>0 ? 1:0)<<bit);
 				}
 				/// TODO: Mask port with PWN PinsMask to 
 				bytes[port_index] = port;
@@ -159,11 +169,12 @@ Did something change at all?
 			return bytes;
 		}
 		
-		static string SetPinStates(ISpread<double> values)
+		string SetPinStates(ISpread<double> values, IDiffSpread<PinModes> modes)
 		{
 			// TODO: handle PWN set pins!
+			// Maybe this should return an object like Ports.ANALOG, PORTS.DIGITAL
+			byte[] ports = PinSpreadToPorts(values,modes);
 			
-			byte[] ports = PinSpreadToPorts(values);
 			List<byte> cmd = new List<byte>();
 			for(int port=0; port<ports.Length; port++)
 			{
