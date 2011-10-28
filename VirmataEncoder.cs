@@ -56,7 +56,7 @@ namespace VVVV.Nodes
 		[Output("Firmatamessage")]
 		ISpread<string> FirmataOut;
 		
-		[Output("change")]
+		[Output("Change")]
 		ISpread<bool> ChangedOut;
 		
 		[Import()]

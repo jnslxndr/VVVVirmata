@@ -1,8 +1,8 @@
-<!DOCTYPE PATCH  SYSTEM "http://vvvv.org/versions/vvvv45beta25.1.dtd" >
-   <PATCH nodename="C:\Users\jens\devel\v4plugins\VirmataEncoder\FirmataDecoder-help.v4p" bgcolor="15329769" filename="C:\Users\jens\devel\v4plugins\VirmataEncoder\FirmataDecoder-help-2~temp2.v4p" systemname="FirmataDecoder-help-2~temp2">
+<!DOCTYPE PATCH  SYSTEM "http://vvvv.org/versions/vvvv45beta26.dtd" >
+   <PATCH nodename="C:\Users\flamemobile\VirmataEncoder\FirmataDecoder-help.v4p" bgcolor="15329769" filename="C:\Users\jens\devel\v4plugins\VirmataEncoder\FirmataDecoder-help-2~temp2.v4p" systemname="FirmataDecoder-help-2~temp2">
    <BOUNDS height="8655" left="0" top="7080" type="Window" width="10485">
    </BOUNDS>
-   <NODE componentmode="InABox" id="14" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
+   <NODE componentmode="InABox" id="14" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
    <BOUNDS height="100" left="2415" top="1365" type="Node" width="100">
    </BOUNDS>
    <BOUNDS height="480" left="2415" top="1365" type="Box" width="480">
@@ -32,10 +32,10 @@
    <PIN pinname="Input String" visible="1">
    </PIN>
    </NODE>
-   <NODE componentmode="InABox" id="23" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
-   <BOUNDS height="100" left="3900" top="4035" type="Node" width="100">
+   <NODE componentmode="InABox" id="23" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
+   <BOUNDS height="100" left="4410" top="4080" type="Node" width="100">
    </BOUNDS>
-   <BOUNDS height="540" left="3900" top="4035" type="Box" width="555">
+   <BOUNDS height="540" left="4410" top="4080" type="Box" width="555">
    </BOUNDS>
    <PIN pinname="Show Value" slicecount="1" values="0">
    </PIN>
@@ -84,7 +84,7 @@
    <PIN pinname="Rows" slicecount="1" values="3">
    </PIN>
    </NODE>
-   <NODE componentmode="InABox" id="44" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
+   <NODE componentmode="InABox" id="44" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
    <BOUNDS height="100" left="3135" top="1365" type="Node" width="100">
    </BOUNDS>
    <BOUNDS height="480" left="3135" top="1365" type="Box" width="480">
@@ -106,7 +106,7 @@
    <PIN pinname="Y Input Value" slicecount="1" values="0">
    </PIN>
    </NODE>
-   <NODE componentmode="InABox" id="45" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
+   <NODE componentmode="InABox" id="45" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
    <BOUNDS height="100" left="3885" top="1365" type="Node" width="100">
    </BOUNDS>
    <BOUNDS height="480" left="3885" top="1365" type="Box" width="480">
@@ -161,19 +161,19 @@
    </BOUNDS>
    <BOUNDS height="240" left="5685" top="4605" type="Box" width="1590">
    </BOUNDS>
-   <PIN pinname="Input Enum" slicecount="1" values="COM8">
+   <PIN pinname="Input Enum" slicecount="1" values="COM6">
    </PIN>
    <PIN pinname="Output Enum" visible="1">
    </PIN>
    </NODE>
    <LINK dstnodeid="41" dstpinname="ComPort" srcnodeid="47" srcpinname="Output Enum">
    </LINK>
-   <NODE componentmode="InABox" id="48" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
-   <BOUNDS height="100" left="5100" top="4335" type="Node" width="100">
+   <NODE componentmode="InABox" id="48" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
+   <BOUNDS height="100" left="5520" top="3900" type="Node" width="100">
    </BOUNDS>
-   <BOUNDS height="480" left="5100" top="4335" type="Box" width="480">
+   <BOUNDS height="480" left="5520" top="3900" type="Box" width="480">
    </BOUNDS>
-   <PIN pinname="Y Input Value" slicecount="1" values="0">
+   <PIN pinname="Y Input Value" slicecount="1" values="1">
    </PIN>
    <PIN pinname="Show Value" slicecount="1" values="0">
    </PIN>
@@ -187,7 +187,7 @@
    </PIN>
    <PIN pinname="Y Output Value" visible="1">
    </PIN>
-   <PIN pinname="X Input Value" slicecount="1" values="0">
+   <PIN pinname="X Input Value" slicecount="1" values="1">
    </PIN>
    </NODE>
    <LINK dstnodeid="41" dstpinname="Enabled" srcnodeid="48" srcpinname="Y Output Value">
@@ -204,7 +204,7 @@
    </LINK>
    <LINK dstnodeid="16" dstpinname="Input String" srcnodeid="50" srcpinname="Output">
    </LINK>
-   <NODE componentmode="InABox" id="51" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
+   <NODE componentmode="InABox" id="51" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
    <BOUNDS height="100" left="4515" top="1425" type="Node" width="100">
    </BOUNDS>
    <BOUNDS height="480" left="4515" top="1425" type="Box" width="480">
@@ -226,12 +226,12 @@
    <PIN pinname="Y Input Value" slicecount="1" values="0">
    </PIN>
    </NODE>
-   <NODE componentmode="InABox" id="53" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
+   <NODE componentmode="InABox" id="53" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
    <BOUNDS height="100" left="1155" top="465" type="Node" width="100">
    </BOUNDS>
    <BOUNDS height="3495" left="1155" top="465" type="Box" width="765">
    </BOUNDS>
-   <PIN pinname="Y Input Value" slicecount="14" values="1,0,1,1,1,1,0,1,1,1,0,0,1,1">
+   <PIN pinname="Y Input Value" slicecount="14" values="1,0,1,1,1,1,0,1,1,1,0,0,0,0">
    </PIN>
    <PIN pinname="Y Output Value" visible="1">
    </PIN>
@@ -253,7 +253,7 @@
    </PIN>
    <PIN pinname="Show Slider" slicecount="1" values="1">
    </PIN>
-   <PIN pinname="X Input Value" slicecount="14" values="1,0,1,1,1,1,0,1,1,1,0,0,1,1">
+   <PIN pinname="X Input Value" slicecount="14" values="1,0,1,1,1,1,0,1,1,1,0,0,0,0">
    </PIN>
    </NODE>
    <LINK dstnodeid="38" dstpinname="Input String" srcnodeid="37" srcpinname="Output">
@@ -271,9 +271,9 @@
    </PIN>
    </NODE>
    <NODE componentmode="InABox" id="56" nodename="IOBox (Enumerations)" systemname="IOBox (Enumerations)">
-   <BOUNDS height="100" left="6075" top="165" type="Node" width="100">
+   <BOUNDS height="100" left="6000" top="15" type="Node" width="100">
    </BOUNDS>
-   <BOUNDS height="3255" left="6075" top="165" type="Box" width="1935">
+   <BOUNDS height="3255" left="6000" top="15" type="Box" width="1935">
    </BOUNDS>
    <PIN pinname="Input Enum" slicecount="14" values="OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT,OUTPUT">
    </PIN>
@@ -290,10 +290,10 @@
    <PIN pinname="Style" slicecount="1" values="PullDown">
    </PIN>
    </NODE>
-   <NODE systemname="IOBox (Value Advanced)" nodename="IOBox (Value Advanced)" componentmode="InABox" id="57">
-   <BOUNDS type="Node" left="6030" top="5700" width="100" height="100">
+   <NODE componentmode="InABox" id="57" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
+   <BOUNDS height="100" left="6030" top="5700" type="Node" width="100">
    </BOUNDS>
-   <BOUNDS type="Box" left="6030" top="5700" width="480" height="480">
+   <BOUNDS height="480" left="6030" top="5700" type="Box" width="480">
    </BOUNDS>
    <PIN pinname="Show Value" slicecount="1" values="0">
    </PIN>
@@ -308,10 +308,10 @@
    <PIN pinname="Y Input Value" visible="1">
    </PIN>
    </NODE>
-   <LINK srcnodeid="41" srcpinname="IsConnected" dstnodeid="57" dstpinname="Y Input Value">
+   <LINK dstnodeid="57" dstpinname="Y Input Value" srcnodeid="41" srcpinname="IsConnected">
    </LINK>
    <NODE componentmode="Hidden" filename="VirmataEncoder.csproj" id="43" nodename="VirmataEncoder (String 0.1)" systemname="VirmataEncoder (String 0.1)">
-   <BOUNDS height="270" left="2610" top="2670" type="Node" width="3030">
+   <BOUNDS height="270" left="2610" top="2595" type="Node" width="3030">
    </BOUNDS>
    <PIN pinname="values" visible="1">
    </PIN>
@@ -393,6 +393,8 @@
    </PIN>
    <PIN pinname="PinModes" visible="1">
    </PIN>
+   <PIN pinname="Change" visible="1">
+   </PIN>
    </NODE>
    <LINK dstnodeid="43" dstpinname="report analog pins" srcnodeid="14" srcpinname="Y Output Value">
    </LINK>
@@ -402,14 +404,16 @@
    </LINK>
    <LINK dstnodeid="43" dstpinname="ReportDigitalPins" srcnodeid="44" srcpinname="Y Output Value">
    </LINK>
-   <LINK dstnodeid="43" dstpinname="ReportFirmwareVersion" srcnodeid="45" srcpinname="Y Output Value">
-   </LINK>
-   <LINK dstnodeid="43" dstpinname="ResetSystem" srcnodeid="51" srcpinname="Y Output Value">
-   </LINK>
    <LINK dstnodeid="43" dstpinname="values" srcnodeid="53" srcpinname="Y Output Value">
    </LINK>
    <LINK dstnodeid="41" dstpinname="Input" srcnodeid="43" srcpinname="Firmatamessage">
    </LINK>
-   <LINK srcnodeid="56" srcpinname="Output Enum" dstnodeid="43" dstpinname="PinModes">
+   <LINK dstnodeid="43" dstpinname="PinModes" srcnodeid="56" srcpinname="Output Enum">
+   </LINK>
+   <LINK srcnodeid="43" srcpinname="Change" dstnodeid="23" dstpinname="Y Input Value">
+   </LINK>
+   <LINK srcnodeid="45" srcpinname="Y Output Value" dstnodeid="43" dstpinname="ReportFirmwareVersion">
+   </LINK>
+   <LINK srcnodeid="51" srcpinname="Y Output Value" dstnodeid="43" dstpinname="ResetSystem">
    </LINK>
    </PATCH>
