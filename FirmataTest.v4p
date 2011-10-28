@@ -29,7 +29,7 @@
    </PIN>
    <PIN pinname="X Input Value" slicecount="1" values="0">
    </PIN>
-   <PIN pinname="Y Input Value" visible="1" slicecount="1" values="0">
+   <PIN pinname="Y Input Value" slicecount="1" visible="1" values="0">
    </PIN>
    </NODE>
    <NODE componentmode="Hidden" id="25" nodename="S+H (String)" systemname="S+H (String)">
@@ -45,7 +45,7 @@
    <NODE componentmode="Hidden" id="37" nodename="Byte (String)" systemname="Byte (String)">
    <BOUNDS height="100" left="2610" top="3495" type="Node" width="100">
    </BOUNDS>
-   <PIN pinname="Input" visible="1" slicecount="1" values="text" encoded="0">
+   <PIN encoded="0" pinname="Input" slicecount="1" visible="1" values="text">
    </PIN>
    <PIN pinname="Byte Output Mode" slicecount="1" values="Hex">
    </PIN>
@@ -244,8 +244,8 @@
    </NODE>
    <LINK dstnodeid="57" dstpinname="Y Input Value" srcnodeid="41" srcpinname="IsConnected">
    </LINK>
-   <NODE systemname="FirmataEncode (Devices Firmata v2.2)" filename="VirmataEncoder.csproj" nodename="FirmataEncode (Devices Firmata v2.2)" componentmode="Hidden" id="58">
-   <BOUNDS type="Node" left="3510" top="2490" width="100" height="100">
+   <NODE componentmode="Hidden" filename="VirmataEncoder.csproj" id="58" nodename="FirmataEncode (Devices Firmata v2.2)" systemname="FirmataEncode (Devices Firmata v2.2)">
+   <BOUNDS height="100" left="3510" top="2490" type="Node" width="100">
    </BOUNDS>
    <PIN pinname="PinModes" visible="1">
    </PIN>
@@ -262,10 +262,10 @@
    <PIN pinname="ReportFirmwareVersion" slicecount="1" values="0">
    </PIN>
    </NODE>
-   <NODE systemname="IOBox (Enumerations)" nodename="IOBox (Enumerations)" componentmode="InABox" id="59">
-   <BOUNDS type="Node" left="5460" top="150" width="100" height="100">
+   <NODE componentmode="InABox" id="59" nodename="IOBox (Enumerations)" systemname="IOBox (Enumerations)">
+   <BOUNDS height="100" left="5460" top="150" type="Node" width="100">
    </BOUNDS>
-   <BOUNDS type="Box" left="5460" top="150" width="1725" height="2160">
+   <BOUNDS height="2160" left="5460" top="150" type="Box" width="1725">
    </BOUNDS>
    <PIN pinname="Output Enum" visible="1">
    </PIN>
@@ -276,24 +276,24 @@
    <PIN pinname="SliceCount Mode" slicecount="1" values="ColsRowsPages">
    </PIN>
    </NODE>
-   <LINK srcnodeid="59" srcpinname="Output Enum" dstnodeid="58" dstpinname="PinModes">
+   <LINK dstnodeid="58" dstpinname="PinModes" srcnodeid="59" srcpinname="Output Enum">
    </LINK>
-   <LINK srcnodeid="44" srcpinname="Y Output Value" dstnodeid="58" dstpinname="report analog pins">
+   <LINK dstnodeid="58" dstpinname="report analog pins" srcnodeid="44" srcpinname="Y Output Value">
    </LINK>
-   <LINK srcnodeid="53" srcpinname="Y Output Value" dstnodeid="58" dstpinname="values">
+   <LINK dstnodeid="58" dstpinname="values" srcnodeid="53" srcpinname="Y Output Value">
    </LINK>
-   <LINK srcnodeid="58" srcpinname="Firmatamessage" dstnodeid="41" dstpinname="Input">
+   <LINK dstnodeid="41" dstpinname="Input" srcnodeid="58" srcpinname="Firmatamessage">
    </LINK>
-   <LINK srcnodeid="58" srcpinname="Change" dstnodeid="41" dstpinname="Do Send">
+   <LINK dstnodeid="41" dstpinname="Do Send" srcnodeid="58" srcpinname="Change">
    </LINK>
-   <NODE systemname="FirmataDecode (Devices)" filename="VirmataEncoder.csproj" nodename="FirmataDecode (Devices)" componentmode="Hidden" id="60">
-   <BOUNDS type="Node" left="8220" top="5520" width="100" height="100">
+   <NODE componentmode="Hidden" filename="VirmataEncoder.csproj" id="60" nodename="FirmataDecode (Devices)" systemname="FirmataDecode (Devices)">
+   <BOUNDS height="100" left="8220" top="5520" type="Node" width="100">
    </BOUNDS>
    </NODE>
-   <NODE systemname="IOBox (Value Advanced)" nodename="IOBox (Value Advanced)" componentmode="InABox" id="61">
-   <BOUNDS type="Node" left="3825" top="420" width="100" height="100">
+   <NODE componentmode="InABox" id="61" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
+   <BOUNDS height="100" left="3825" top="420" type="Node" width="100">
    </BOUNDS>
-   <BOUNDS type="Box" left="3825" top="420" width="480" height="480">
+   <BOUNDS height="480" left="3825" top="420" type="Box" width="480">
    </BOUNDS>
    <PIN pinname="Value Type" slicecount="1" values="Boolean">
    </PIN>
@@ -306,18 +306,18 @@
    <PIN pinname="Y Input Value" slicecount="1" values="0">
    </PIN>
    </NODE>
-   <LINK srcnodeid="61" srcpinname="Y Output Value" dstnodeid="58" dstpinname="ReportDigitalPins">
+   <LINK dstnodeid="58" dstpinname="ReportDigitalPins" srcnodeid="61" srcpinname="Y Output Value">
    </LINK>
-   <NODE systemname="Sift (String)" nodename="Sift (String)" componentmode="Hidden" id="63">
-   <BOUNDS type="Node" left="8520" top="2610" width="100" height="100">
+   <NODE componentmode="Hidden" id="63" nodename="Sift (String)" systemname="Sift (String)">
+   <BOUNDS height="100" left="3690" top="6390" type="Node" width="100">
    </BOUNDS>
-   <PIN pinname="Filter" slicecount="1" values="E0" encoded="0">
+   <PIN encoded="0" pinname="Filter" slicecount="1" values="E0">
    </PIN>
    <PIN pinname="Input" visible="1">
    </PIN>
    <PIN pinname="Comparison" slicecount="1" values="Contains">
    </PIN>
    </NODE>
-   <LINK srcnodeid="50" srcpinname="Output" dstnodeid="63" dstpinname="Input">
+   <LINK dstnodeid="63" dstpinname="Input" srcnodeid="50" srcpinname="Output">
    </LINK>
    </PATCH>
