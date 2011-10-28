@@ -22,7 +22,7 @@ namespace VVVV.Nodes
 	{
 		#region fields & pins
 		[Input("FirmataMessage", DefaultValue = 1.0)]
-		ISpread<String> FInput;
+		ISpread<String> firmataMessage;
 
 		[Output("AnalogIn")]
 		ISpread<int> analogIns;
@@ -39,8 +39,7 @@ namespace VVVV.Nodes
 		{
 			analogIns.SliceCount = SpreadMax;
 
-			for (int i = 0; i < SpreadMax; i++)
-				analogIns[i] = 1;
+			//Encoding.GetEncoding(1252).GetString(bytes);
 				 
 			//FLogger.Log(LogType.Debug, "hi tty!");
 		}
