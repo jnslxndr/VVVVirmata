@@ -25,7 +25,7 @@ namespace VVVV.Nodes
 		ISpread<String> firmataMessage;
 		
 		[Output("AnalogIn")]
-		ISpread<int> analogIns;
+		ISpread<String> analogIns;
 		
 		[Output("DigitalIn")]
 		ISpread<bool> digitalIns;
@@ -37,12 +37,22 @@ namespace VVVV.Nodes
 		//called when data for any output pin is requested
 		public void Evaluate(int SpreadMax)
 		{
-			analogIns.SliceCount = SpreadMax;
+			
+			
+			
 			if(firmataMessage.SliceCount>0)
 			{
 				byte[] ba = Encoding.GetEncoding(1252).GetBytes(firmataMessage[0]);
-				FLogger.Log(LogType.Debug,Encoding.GetEncoding(1252).GetString(ba));
+				//FLogger.Log(LogType.Debug,Encoding.GetEncoding(1252).GetString(ba));
+				
+				analogIns.SliceCount = ba.Length;
+				
+				
+				for (int i = 0; i < ba.Length; i++)
+				analogIns[i] = Convert.ToString(ba[i]);
 			}
+			
+			
 			
 			//Encoding.GetEncoding(1252).GetString(bytes);
 			
