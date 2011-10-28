@@ -1,5 +1,5 @@
 <!DOCTYPE PATCH  SYSTEM "http://vvvv.org/versions/vvvv45beta25.1.dtd" >
-   <PATCH nodename="C:\Users\jens\devel\v4plugins\VirmataEncoder\FirmataDecoder-help.v4p" bgcolor="15329769" filename="C:\Users\jens\devel\v4plugins\VirmataEncoder\FirmataDecoder-help-2~temp2.v4p" systemname="FirmataDecoder-help-2~temp2">
+   <PATCH nodename="C:\Users\jens\devel\v4plugins\virmataencoder\FirmataTestJens.v4p" bgcolor="15329769" filename="C:\Users\jens\devel\v4plugins\VirmataEncoder\FirmataDecoder-help-2~temp2.v4p" systemname="FirmataDecoder-help-2~temp2">
    <BOUNDS height="8655" left="0" top="7080" type="Window" width="10485">
    </BOUNDS>
    <NODE componentmode="InABox" id="14" nodename="IOBox (Value Advanced)" systemname="IOBox (Value Advanced)">
@@ -51,7 +51,7 @@
    </PIN>
    <PIN pinname="X Input Value" slicecount="1" values="0">
    </PIN>
-   <PIN pinname="Y Input Value" visible="1">
+   <PIN pinname="Y Input Value" visible="1" slicecount="1" values="0">
    </PIN>
    </NODE>
    <NODE componentmode="Hidden" id="25" nodename="S+H (String)" systemname="S+H (String)">
@@ -308,108 +308,38 @@
    </NODE>
    <LINK dstnodeid="57" dstpinname="Y Input Value" srcnodeid="41" srcpinname="IsConnected">
    </LINK>
-   <NODE componentmode="Hidden" filename="VirmataEncoder.csproj" id="43" nodename="VirmataEncoder (String 0.1)" systemname="VirmataEncoder (String 0.1)">
-   <BOUNDS height="270" left="2610" top="2670" type="Node" width="3030">
+   <NODE systemname="FirmataEncode (Devices Firmata v2.2)" filename="VirmataEncoder.csproj" nodename="FirmataEncode (Devices Firmata v2.2)" componentmode="Hidden" id="58">
+   <BOUNDS type="Node" left="2775" top="2475" width="100" height="100">
    </BOUNDS>
-   <PIN pinname="values" visible="1">
-   </PIN>
    <PIN pinname="report analog pins" visible="1">
-   </PIN>
-   <PIN pinname="Firmatamessage" visible="1">
-   </PIN>
-   <PIN pinname="change" visible="1">
    </PIN>
    <PIN pinname="ReportDigitalPins" visible="1">
    </PIN>
-   <PIN pinname="ReportFirmwareVersion" visible="1">
+   <PIN pinname="Firmatamessage" visible="1">
    </PIN>
-   <PIN pinname="ResetSystem" visible="1">
-   </PIN>
-   <PIN pinname="Samplerate" slicecount="1" visible="1" values="29">
-   </PIN>
-   <PIN pinname="SendOnCreate" slicecount="1" values="1">
-   </PIN>
-   <PIN pinname="DigitalPins Count">
-   </PIN>
-   <PIN pinname="DigitalPins 1">
-   </PIN>
-   <PIN pinname="DigitalPins 2">
-   </PIN>
-   <PIN pinname="DigitalPins 3">
-   </PIN>
-   <PIN pinname="DigitalPins 4">
-   </PIN>
-   <PIN pinname="DigitalPins 5">
-   </PIN>
-   <PIN pinname="DigitalPins 6">
-   </PIN>
-   <PIN pinname="DigitalPins 7">
-   </PIN>
-   <PIN pinname="DigitalPins 8">
-   </PIN>
-   <PIN pinname="DigitalPins 9">
-   </PIN>
-   <PIN pinname="DigitalPins 10">
-   </PIN>
-   <PIN pinname="DigitalPins 11">
-   </PIN>
-   <PIN pinname="DigitalPins 12">
-   </PIN>
-   <PIN pinname="DigitalPins 14">
-   </PIN>
-   <PIN pinname="Pin Count">
-   </PIN>
-   <PIN pinname="Pin 3">
-   </PIN>
-   <PIN pinname="Pin 12">
-   </PIN>
-   <PIN pinname="Pin 14">
-   </PIN>
-   <PIN pinname="Pin 9">
-   </PIN>
-   <PIN pinname="Pin 1">
-   </PIN>
-   <PIN pinname="Pin 2">
-   </PIN>
-   <PIN pinname="Pin 4">
-   </PIN>
-   <PIN pinname="Pin 5">
-   </PIN>
-   <PIN pinname="Pin 6">
-   </PIN>
-   <PIN pinname="Pin 7">
-   </PIN>
-   <PIN pinname="Pin 8">
-   </PIN>
-   <PIN pinname="Pin 10">
-   </PIN>
-   <PIN pinname="Pin 11">
-   </PIN>
-   <PIN pinname="Pin 13">
-   </PIN>
-   <PIN pinname="Pin" pintype="Input" visible="1">
+   <PIN pinname="values" visible="1">
    </PIN>
    <PIN pinname="PinModes" visible="1">
    </PIN>
+   <PIN pinname="ReportFirmwareVersion" visible="1">
+   </PIN>
+   <PIN pinname="Change" visible="1">
+   </PIN>
    </NODE>
-   <LINK dstnodeid="43" dstpinname="report analog pins" srcnodeid="14" srcpinname="Y Output Value">
+   <LINK srcnodeid="14" srcpinname="Y Output Value" dstnodeid="58" dstpinname="report analog pins">
    </LINK>
-   <LINK dstnodeid="37" dstpinname="Input" srcnodeid="43" srcpinname="Firmatamessage">
+   <LINK srcnodeid="44" srcpinname="Y Output Value" dstnodeid="58" dstpinname="ReportDigitalPins">
    </LINK>
-   <LINK dstnodeid="23" dstpinname="Y Input Value" srcnodeid="43" srcpinname="change">
+   <LINK srcnodeid="58" srcpinname="Firmatamessage" dstnodeid="37" dstpinname="Input">
    </LINK>
-   <LINK dstnodeid="43" dstpinname="ReportDigitalPins" srcnodeid="44" srcpinname="Y Output Value">
+   <LINK srcnodeid="58" srcpinname="Firmatamessage" dstnodeid="41" dstpinname="Input">
    </LINK>
-   <LINK dstnodeid="43" dstpinname="ReportFirmwareVersion" srcnodeid="45" srcpinname="Y Output Value">
+   <LINK srcnodeid="53" srcpinname="Y Output Value" dstnodeid="58" dstpinname="values">
    </LINK>
-   <LINK dstnodeid="43" dstpinname="ResetSystem" srcnodeid="51" srcpinname="Y Output Value">
+   <LINK srcnodeid="56" srcpinname="Output Enum" dstnodeid="58" dstpinname="PinModes">
    </LINK>
-   <LINK dstnodeid="43" dstpinname="values" srcnodeid="53" srcpinname="Y Output Value">
+   <LINK srcnodeid="45" srcpinname="Y Output Value" dstnodeid="58" dstpinname="ReportFirmwareVersion">
    </LINK>
-   <LINK dstnodeid="41" dstpinname="Input" srcnodeid="43" srcpinname="Firmatamessage">
-   </LINK>
-   <LINK dstnodeid="43" dstpinname="PinModes" srcnodeid="56" srcpinname="Output Enum">
-   </LINK>
-   <LINK srcnodeid="43" srcpinname="change" dstnodeid="41" dstpinname="Do Send">
+   <LINK srcnodeid="58" srcpinname="Change" dstnodeid="41" dstpinname="Do Send">
    </LINK>
    </PATCH>
