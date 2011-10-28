@@ -13,14 +13,14 @@ using VVVV.Core.Logging;
 namespace VVVV.Nodes
 {
 	#region PluginInfo
-	[PluginInfo(Name = "VirmataEncoder",
-	Category = "String",
-	Version = "0.1",
-	Help = "Encodes Pins,Values and Commands for Firmata (Protocol v2.2)",
-	Tags = "String,Devices")]
+	[PluginInfo(Name = "FirmataEncode",
+	Category = "Devices",
+	Version = "Firmata v2.2",
+	Help = "Encodes pins, values and commands for Firmata (Protocol v2.2)",
+	Tags = "Devices,Encoders")]
 	#endregion PluginInfo
 	
-	public class VirmataEncoder : IPluginEvaluate
+	public class FirmataEncode : IPluginEvaluate
 	{
 		///
 		/// INPUT
@@ -41,7 +41,7 @@ namespace VVVV.Nodes
 		[Input("ReportFirmwareVersion",IsSingle = true, Visibility = PinVisibility.Hidden)]
 		IDiffSpread<bool> ReportFirmwareVersion;
 		
-		[Input("ResetSystem",IsSingle = true, Visibility = PinVisibility.Hidden)]
+		[Input("ResetSystem",IsSingle = true, Visibility = PinVisibility.OnlyInspector)]
 		IDiffSpread<bool> ResetSystem;
 		
 		[Input("PinModes", DefaultEnumEntry = "INPUT")]
