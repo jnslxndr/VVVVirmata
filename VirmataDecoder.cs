@@ -13,16 +13,16 @@ using VVVV.Core.Logging;
 namespace VVVV.Nodes
 {
 	#region PluginInfo
-	[PluginInfo(Name = "VirmataDecoder",
-	            Category = "Value",
-	            Help = "Basic template with one value in/out",
+	[PluginInfo(Name = "FirmataDecode",
+	            Category = "Devices",
+	            Help = "decodes the firmata2.2 protocol",
 	            Tags = "")]
 	#endregion PluginInfo
-	public class VirmataDecoder : IPluginEvaluate
+	public class FirmataDecode : IPluginEvaluate
 	{
 		#region fields & pins
-		[Input("Input", DefaultValue = 1.0)]
-		ISpread<double> FInput;
+		[Input("FirmataMessage", DefaultValue = 1.0)]
+		ISpread<String> FInput;
 
 		[Output("Output")]
 		ISpread<double> FOutput;
@@ -37,7 +37,7 @@ namespace VVVV.Nodes
 			FOutput.SliceCount = SpreadMax;
 
 			for (int i = 0; i < SpreadMax; i++)
-				FOutput[i] = FInput[i] * 2;
+				FOutput[i] = 1;
 				 
 			//FLogger.Log(LogType.Debug, "hi tty!");
 		}
