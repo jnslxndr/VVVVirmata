@@ -65,10 +65,13 @@ namespace VVVV.Nodes
 		
 		public void Evaluate(int SpreadMax)
 		{
+			UpdatePinConfiguration();
+			
 			string command_out = "";
 			
 			if(PinModeSetup.IsChanged)
 			{
+				
 				for(int i=0; i<PinModeSetup.SliceCount; i++)
 				{
 					command_out += SetPinModeCommand(PinModeSetup[i],i);
@@ -125,6 +128,46 @@ Did something change at all?
 		
 		#region Helper functions
 		
+		Stack<byte> INPUT_PORT_MASKS  = new Stack<byte>();
+		Stack<byte> OUPUT_PORT_MASKS  = new Stack<byte>();
+		Stack<byte> ANALOG_PORT_MASKS = new Stack<byte>();
+		Stack<byte> PWM_PORT_MASKS    = new Stack<byte>();
+		
+		PinModes DEFAULT_PINMODE = PinModes.OUTPUT;
+		
+		/// <summary>
+		/// Updates the pin masks, number of pins ,etc
+		/// </summary>
+		void UpdatePinConfiguration()
+		{
+//			if (!PinModeSetup.IsChanged) return;
+			
+			/// calculate the next full divider by 8:
+			int num_pins = PinModeSetup.SliceCount >= PinValues.SliceCount ?  PinModeSetup.SliceCount : PinValues.SliceCount;
+			int port_count  = num_pins/8 + (num_pins%8==0 ? 0 : 1);
+			// byte[] bytes = new byte[port_count];
+			
+			// allocate memory once
+			byte input_port,output_port,analog_port,pwm_port;
+			for(int i = 0; i<port_count; i++)
+			{
+				input_port=output_port=analog_port=pwm_port=0x00;
+				
+				for (int bit=0; bit<8; bit++)
+				{
+					int src_index = i*8+bit;
+					PinModes mode = src_index<PinModeSetup.SliceCount ? PinModeSetup[src_index]:DEFAULT_PINMODE;
+					input_port  |= (byte)((mode == PinModes.INPUT  ? 1:0)<<bit);
+					output_port |= (byte)((mode == PinModes.OUTPUT ? 1:0)<<bit);
+					analog_port |= (byte)((mode == PinModes.ANALOG ? 1:0)<<bit);
+					pwm_port    |= (byte)((mode == PinModes.PWM    ? 1:0)<<bit);
+				}
+				INPUT_PORT_MASKS.Push(input_port);
+				OUPUT_PORT_MASKS.Push(output_port);
+				ANALOG_PORT_MASKS.Push(analog_port);
+				PWM_PORT_MASKS.Push(pwm_port);
+			}
+		}
 		
 		/* This is a shortcut to encode byte arrays, which also contain bytes higer than 127 */
 		static string Encode(byte[] bytes) {
@@ -160,10 +203,10 @@ Did something change at all?
 					int src_index = port_index*8+bit;
 					double val = src_index<spread.SliceCount ? spread[src_index]:0;
 					/// Only set if pin is configured as output, so get the mode
-					int mode = src_index>=modes.SliceCount ? 0x00 : modes[src_index] == PinModes.OUTPUT ? 0x01:0x00; 
+					int mode = src_index>=modes.SliceCount ? 0x00 : modes[src_index] == PinModes.OUTPUT ? 0x01:0x00;
 					port |= (byte)((val >= 0.5 && mode>0 ? 1:0)<<bit);
 				}
-				/// TODO: Mask port with PWN PinsMask to 
+				/// TODO: Mask port with PWN PinsMask to
 				bytes[port_index] = port;
 			}
 			return bytes;
@@ -173,6 +216,7 @@ Did something change at all?
 		{
 			// TODO: handle PWN set pins!
 			// Maybe this should return an object like Ports.ANALOG, PORTS.DIGITAL
+			
 			byte[] ports = PinSpreadToPorts(values,modes);
 			
 			List<byte> cmd = new List<byte>();
@@ -184,7 +228,7 @@ Did something change at all?
 				
 				byte the_port = ATMegaPorts.getPortForIndex(port);
 				byte writeCommand = (byte)((uint) FirmataCommands.DIGITALMESSAGE | the_port);
-								
+				
 				cmd.Add(writeCommand);
 				cmd.Add(LSB);
 				cmd.Add(MSB);
@@ -321,7 +365,7 @@ Did something change at all?
 		/// A command to change the pin mode for the specified pin
 		/// </summary>
 		public const byte SETPINMODE = 0xF4;
-	
+		
 		/// <summary>
 		/// Sysex start command
 		/// </summary>
@@ -354,12 +398,12 @@ Did something change at all?
 		/// Pinmode INPUT
 		/// </summary>
 		INPUT = 0x00,
-
+		
 		/// <summary>
 		/// Pinmode OUTPUT
 		/// </summary>
 		OUTPUT = 0x01,
-
+		
 		/// <summary>
 		/// Pinmode ANALOG (This is not implemented in the standard firmata program)
 		/// </summary>
