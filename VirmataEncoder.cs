@@ -62,6 +62,7 @@ namespace VVVV.Nodes
 		[Import()]
 		ILogger FLogger;
 		
+		
 		public void Evaluate(int SpreadMax)
 		{
 			string command_out = "";
@@ -125,8 +126,10 @@ Did something change at all?
 		
 		
 		/* This is a shortcut to encode byte arrays, which also contain bytes higer than 127 */
-		static string Encode(byte[] bytes) {return Encoding.GetEncoding("latin1").GetString(bytes);}
-		
+		static string Encode(byte[] bytes) {
+			/// Use ANSI Encoding!
+			return Encoding.GetEncoding(1252).GetString(bytes);
+		}
 		static string SetPinModeCommand(PinModes mode, int pin)
 		{
 			byte[] cmd = {
@@ -137,7 +140,7 @@ Did something change at all?
 			return Encode(cmd);
 		}
 		
-		byte[] PinSpreadToPorts(ISpread<double> spread)
+		static byte[] PinSpreadToPorts(ISpread<double> spread)
 		{
 			int num_ports = spread.SliceCount/8 + (spread.SliceCount%8==0 ? 0 : 1);
 			byte[] bytes = new byte[num_ports];
@@ -150,12 +153,13 @@ Did something change at all?
 					double val = src_index<spread.SliceCount ? spread[src_index]:0;
 					port |= (byte)((val >= 0.5 ? 1:0)<<bit);
 				}
+				/// TODO: Mask port with PWN PinsMask to 
 				bytes[port_index] = port;
 			}
 			return bytes;
 		}
 		
-		string SetPinStates(ISpread<double> values)
+		static string SetPinStates(ISpread<double> values)
 		{
 			// TODO: handle PWN set pins!
 			
@@ -164,23 +168,15 @@ Did something change at all?
 			for(int port=0; port<ports.Length; port++)
 			{
 				byte LSB, MSB;
+				
 				GetBytesFromValue(ports[port], out MSB, out LSB);
-				//FLogger.Log(LogType.Debug,port.ToString());
-				// We take the 4 MSB from the command type and the 4 LSB from the pin
 				
 				byte the_port = ATMegaPorts.getPortForIndex(port);
 				byte writeCommand = (byte)((uint) FirmataCommands.DIGITALMESSAGE | the_port);
 								
-				// Write the command to enable the analog output for the pin we want
 				cmd.Add(writeCommand);
 				cmd.Add(LSB);
 				cmd.Add(MSB);
-				
-				FLogger.Log(LogType.Debug,"To port({0}):",the_port);
-				FLogger.Log(LogType.Debug,Convert.ToString(writeCommand,16));
-				FLogger.Log(LogType.Debug,Convert.ToString(LSB,2));
-				FLogger.Log(LogType.Debug,Convert.ToString(MSB,2));
-				
 			}
 			return Encode(cmd.ToArray());
 		}
@@ -200,11 +196,7 @@ Did something change at all?
 		}
 		
 		
-		/* Query Firmware Name and Version
-* 0	 START_SYSEX (0xF0)
-* 1	 queryFirmware (0x79)
-* 2	 END_SYSEX (0xF7)
-*/
+		/// Query Firmware Name and Version
 		static string GetFirmwareVersionCommand()
 		{
 			byte[] cmd = {
