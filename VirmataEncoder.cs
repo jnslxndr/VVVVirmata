@@ -27,23 +27,23 @@ namespace VVVV.Nodes
 		///
 		/// INPUT
 		///
-		[Input("values")]
+		[Input("Values")]
 		IDiffSpread<double> PinValues;
 		
 		[Input("PinModes", DefaultEnumEntry = "INPUT")]
 		IDiffSpread<PinModes> PinModeSetup;
 		
-		[Input("report analog pins",IsSingle = true)]
+		[Input("report analog pins",IsSingle = true, DefaultValue = 1)]
 		IDiffSpread<bool> ReportAnalogPins;
 		
-		[Input("ReportDigitalPins",IsSingle = true)]
+		[Input("ReportDigitalPins",IsSingle = true, DefaultValue = 1)]
 		IDiffSpread<bool> ReportDigitalPins;
 		
 		//// Use a default SamplingRate of 40ms
 		[Input("Samplerate", MinValue = 0, DefaultValue = 40,IsSingle = true)]
 		IDiffSpread<int> Samplerate;
 		
-		[Input("ReportFirmwareVersion",IsSingle = true, Visibility = PinVisibility.Hidden, IsBang=true)]
+		[Input("ReportFirmwareVersion",IsSingle = true, Visibility = PinVisibility.OnlyInspector, IsBang=true)]
 		IDiffSpread<bool> ReportFirmwareVersion;
 		
 		[Input("Reset",IsSingle = true, Visibility = PinVisibility.Hidden, IsBang=true, DefaultValue = 0)]
@@ -58,35 +58,35 @@ namespace VVVV.Nodes
 		[Output("Firmatamessage")]
 		ISpread<string> FirmataOut;
 		
+		[Output("RAW")]
+		ISpread<byte[]> RawOut;
+		
 		[Output("Change")]
 		ISpread<bool> ChangedOut;
 		
 		[Import()]
 		ILogger FLogger;
 		
-		// It is so sparsely documented, but this one is called after load of the node is finished!?
-		public void OnImportsSatisfied()
-		{
-		}
-		
 		/// EVALUATE
 		public void Evaluate(int SpreadMax)
 		{
-			string command_out = UpdatePinConfiguration();
+			string command_out = "";
 			
-			if(ResetSystem.IsChanged && ShouldReset) command_out += GetResetCommand();
+//			if(ResetSystem.IsChanged && ShouldReset) command_out += GetResetCommand();
+			
+			if( PinModeSetup.IsChanged || ShouldReset || !PINS_CONFIGURED)
+				command_out += UpdatePinConfiguration();
 			
 			if (ReportFirmwareVersion.IsChanged) command_out += GetFirmwareVersionCommand();
 			
+			if (PinValues.IsChanged || ShouldReset) command_out += SetPinStates(PinValues);
 			
-			if (PinValues.IsChanged)
-				command_out += SetPinStates(PinValues);
 			
 			/// Set Pinreporting for analog pins
-				// TODO: It should not be a fixed number of pins, later versions
-				// TODO: if spread has only one value, do all, otherwise do given, there are 16!
+			// TODO: It should not be a fixed number of pins, later versions
+			// TODO: if spread has only one value, do all, otherwise do given, there are 16!
 			if (ReportAnalogPins.IsChanged || ShouldReset)
-				command_out += SetAnalogPinReportingForRange(6,ReportAnalogPins[0]);
+			command_out += SetAnalogPinReportingForRange(6,ReportAnalogPins[0]);
 			
 			/// Set Pinreporting for digital pins
 			if (ReportDigitalPins.IsChanged || ShouldReset)
@@ -120,6 +120,7 @@ namespace VVVV.Nodes
 		
 		byte[] OUTPUT_PORT_MASKS  = {}; // empty array
 		
+		/// NOT USED:
 		Queue<byte> INPUT_PORT_MASKS  = new Queue<byte>();
 		Queue<byte> ANALOG_PORT_MASKS = new Queue<byte>();
 		Queue<byte> PWM_PORT_MASKS    = new Queue<byte>();
@@ -154,7 +155,6 @@ namespace VVVV.Nodes
 			return pin<PinModeSetup.SliceCount ? PinModeSetup[pin]:DEFAULT_PINMODE;
 		}
 		
-		string pinmode_cmd_buffer = "";
 		/// <summary>
 		/// Updates the pin masks, number of pins ,etc
 		/// </summary>
@@ -162,11 +162,8 @@ namespace VVVV.Nodes
 		{
 			PIN_CONFIG_CHANGED = false;
 			
-			// just a workarround, we are switch to stacks intirely
-			pinmode_cmd_buffer = "";
-			
 			// Do not do it if nothing changed, but do it if the pins have not yet been configured
-			if ((!PinModeSetup.IsChanged && !ShouldReset) && PINS_CONFIGURED) return "";
+			//			if (PINS_CONFIGURED) return "";
 			
 			UpdatePinCount();
 			
@@ -406,6 +403,7 @@ namespace VVVV.Nodes
 	}
 	
 	#region DEFINITIONS
+	
 	public static class FirmataCommands
 	{
 		/// <summary>
