@@ -21,11 +21,17 @@ namespace VVVV.Nodes
 	public class FirmataDecode : IPluginEvaluate
 	{
 		#region fields & pins
-		[Input("FirmataMessage", DefaultValue = 1.0)]
-		IDiffSpread<String> firmataMessage;
+		[Input("FirmataMessage")]
+		IDiffSpread<String> ansiMessage;
+		
+		[Input("AnalogInputCount",DefaultValue = 6, Visibility = PinVisibility.OnlyInspector)]
+		ISpread<int> analogInputCount;
+		
+		[Input("DigitalInputCount",DefaultValue = 12, Visibility = PinVisibility.OnlyInspector)]
+		ISpread<int> digitalInputCount;
 		
 		[Output("AnalogIn")]
-		ISpread<String> analogIns;
+		ISpread<int> analogIns;
 		
 		[Output("DigitalIn")]
 		ISpread<int> digitalIns;
@@ -38,34 +44,20 @@ namespace VVVV.Nodes
 		public void Evaluate(int SpreadMax)
 		{
 			
+			int numberOfAnalogs = 6;
+			analogIns.SliceCount = numberOfAnalogs;
 			
-			
-			if(firmataMessage.SliceCount>0 && firmataMessage.IsChanged == true )
+		
+			if(ansiMessage.SliceCount>0 && ansiMessage.IsChanged == true )
 			{
-				byte[] ba = Encoding.GetEncoding(1252).GetBytes(firmataMessage[0]);
-				//FLogger.Log(LogType.Debug,Convert.ToString(ba[0]));
-				//byte[] ba = System.Text.Encoding.ASCII.GetBytes(firmataMessage[0]);
-				analogIns.SliceCount = ba.Length;
-				
-				
-				for (int i = 0; i < ba.Length; i++)
-				analogIns[i] = Convert.ToString(ba[i],16);
-			
-				int test = GetValueFromBytes(01,50);
-				digitalIns[0]=test;
+				byte[] byteMessage = new byte[numberOfAnalogs];
+				byteMessage = Encoding.GetEncoding(1252).GetBytes(ansiMessage[0]);
+				string fullStringMessage = PrepareMessage(byteMessage,numberOfAnalogs);
+				GetSetAnalogIns(fullStringMessage,numberOfAnalogs);	
 				
 			}
 			
 			
-			
-			
-		
-			
-	
-			
-			
-			
-			//FLogger.Log(LogType.Debug, "hi tty!");
 		}
 		
 		
@@ -79,6 +71,37 @@ namespace VVVV.Nodes
 			tempValue = tempValue | (LSB & 0x7F);
 			return tempValue;
 		}
+		
+		static string PrepareMessage(byte[] byteMessage, int MessageLenght)
+		{
+			
+			// decoding to int16 as string like E0 E1 for analog pins ID
+			string[] stringMessage = new string[byteMessage.Length];
+			for (int i = 0; i < byteMessage.Length; i++) stringMessage[i] = byteMessage[i].ToString("X2");
+			string fullStringMessage = string.Join(".", stringMessage);
+			return fullStringMessage;
+		}
+		
+		void GetSetAnalogIns(string Message, int NumberOfAnalogs)
+		{
+			for (int i = 0; i < NumberOfAnalogs; i++)
+			{
+				
+				int firstCharacter = Message.IndexOf("E" + Convert.ToString(i),0);
+				int checkLenght = Message.Length - firstCharacter;	
+			
+				if (checkLenght > 12 && firstCharacter != -1){
+				
+				string MSB = Message.Substring(firstCharacter+3,2);	
+				string LSB = Message.Substring(firstCharacter+6,2);
+					
+				int analogValues = GetValueFromBytes(Convert.ToByte(LSB,16),Convert.ToByte(MSB,16));	
+				analogIns[i] = analogValues;
+				}
+				
+			}
+		}
+		
 		
 	}
 	
