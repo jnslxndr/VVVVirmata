@@ -1,5 +1,52 @@
+#region Copyright notice
+/*
+A Firmata Encoder Plugin for VVVV
+----------------------------------
+Encoding control and configuration messages for Firmata enabled MCUs. This
+Plugin encodes to a ANSI string and a byte array, so you can send via any
+interface, most likely RS-232 a.k.a. Comport to a - most likely - Arduino.
+
+For more information on Firmata see: http://firmata.org
+Get the source here: https://github.com/jens-a-e/VirmataEncoder
+Any issues should be posted here: https://github.com/jens-a-e/VirmataEncoder/issues
+
+Copyleft 2011
+	Jens Alexander Ewald, http://ififelse.net
+	Chris Engler, http://wirmachenbunt.de
+
+Inspired by the Sharpduino project by Tasos Valsamidis (LSB and MSB operations)
+See http://code.google.com/p/sharpduino if interested.
 
 
+Copyright notice
+----------------
+
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>
+*/
+#endregion
 
 #region usings
 using System;
@@ -58,72 +105,72 @@ namespace VVVV.Nodes
 		[Output("Firmatamessage")]
 		ISpread<string> FirmataOut;
 		
-		[Output("RAW")]
-		ISpread<byte[]> RawOut;
-		
 		[Output("Change")]
 		ISpread<bool> ChangedOut;
+		
+		[Output("RAW", Visibility = PinVisibility.Hidden)]
+		ISpread<byte[]> RawOut;
+		
 		
 		[Import()]
 		ILogger FLogger;
 		
+		/// Use a Queue for a command byte buffer:
+		Queue<byte> CommandBuffer = new Queue<byte>(1024);
+		
 		/// EVALUATE
 		public void Evaluate(int SpreadMax)
 		{
-			string command_out = "";
+			// Clear the buffer before everey run
+			CommandBuffer.Clear();
 			
-//			if(ResetSystem.IsChanged && ShouldReset) command_out += GetResetCommand();
+			if(ResetSystem.IsChanged && ShouldReset)
+			GetResetCommand();
 			
-			if( PinModeSetup.IsChanged || ShouldReset || !PINS_CONFIGURED)
-				command_out += UpdatePinConfiguration();
+			if(PinModeSetup.IsChanged || ShouldReset || !PINS_CONFIGURED)
+			UpdatePinConfiguration();
 			
-			if (ReportFirmwareVersion.IsChanged) command_out += GetFirmwareVersionCommand();
-			
-			if (PinValues.IsChanged || ShouldReset) command_out += SetPinStates(PinValues);
-			
+			if (PinModeSetup.IsChanged || PinValues.IsChanged || ShouldReset)
+			SetPinStates(PinValues);
 			
 			/// Set Pinreporting for analog pins
 			// TODO: It should not be a fixed number of pins, later versions
 			// TODO: if spread has only one value, do all, otherwise do given, there are 16!
 			if (ReportAnalogPins.IsChanged || ShouldReset)
-			command_out += SetAnalogPinReportingForRange(6,ReportAnalogPins[0]);
+			SetAnalogPinReportingForRange(16,ReportAnalogPins[0]);
 			
 			/// Set Pinreporting for digital pins
 			if (ReportDigitalPins.IsChanged || ShouldReset)
 			{
 				// TODO: Check which pin number should be reported and enable only the proper port.
 				// TODO: It could work like: fi spread.slicecount==1 do all, else do specific pins
-				command_out += GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTB);
-				command_out += GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTC);
-				command_out += GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTD);
+				GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTB);
+				GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTC);
+				GetDigitalPinReportingCommandForState(ReportDigitalPins[0],ATMegaPorts.PORTD);
 			}
 			
 			if(Samplerate.IsChanged || ShouldReset)
 			{
 				// We must shortly trun of the reporting to get immidiate change of rate
-				if (ReportAnalogPins[0])
-				command_out += SetAnalogPinReportingForRange(6,false);
-				
-				command_out += GetSamplerateCommand(Samplerate[0]);
-				
-				if (ReportAnalogPins[0])
-				command_out += SetAnalogPinReportingForRange(6,ReportAnalogPins[0]);
+				if (ReportAnalogPins[0]) SetAnalogPinReportingForRange(6,false);
+				GetSamplerateCommand(Samplerate[0]);
+				if (ReportAnalogPins[0]) SetAnalogPinReportingForRange(6,true);
 			}
 			
-			bool something_changed = (command_out!="");
-			ChangedOut[0] = something_changed;
-			FirmataOut[0] = command_out;
+			if (ReportFirmwareVersion.IsChanged) GetFirmwareVersionCommand();
+			
+			ChangedOut[0] = CommandBuffer.Count>0;
+			RawOut[0]     = CommandBuffer.ToArray();
+			FirmataOut[0] = Encoder.GetString(RawOut[0]);
 		}
 		
 		
-		#region Helper functions
+		#region Member definitions & helper functions
+		
+		/// Use ANSI Encoding for the Encoder
+		static Encoding Encoder = Encoding.GetEncoding(1252);
 		
 		byte[] OUTPUT_PORT_MASKS  = {}; // empty array
-		
-		/// NOT USED:
-		Queue<byte> INPUT_PORT_MASKS  = new Queue<byte>();
-		Queue<byte> ANALOG_PORT_MASKS = new Queue<byte>();
-		Queue<byte> PWM_PORT_MASKS    = new Queue<byte>();
 		
 		PinModes DEFAULT_PINMODE = PinModes.OUTPUT;
 		
@@ -158,12 +205,9 @@ namespace VVVV.Nodes
 		/// <summary>
 		/// Updates the pin masks, number of pins ,etc
 		/// </summary>
-		string UpdatePinConfiguration()
+		void UpdatePinConfiguration()
 		{
 			PIN_CONFIG_CHANGED = false;
-			
-			// Do not do it if nothing changed, but do it if the pins have not yet been configured
-			//			if (PINS_CONFIGURED) return "";
 			
 			UpdatePinCount();
 			
@@ -171,15 +215,12 @@ namespace VVVV.Nodes
 			NUM_OUTPUT_PORTS = NUM_PORTS;
 			OUTPUT_PORT_MASKS = new byte[NUM_OUTPUT_PORTS];
 			
-			// build the coammnd for pin configuration in parallel
-			Queue<byte> config_command = new Queue<byte>();
-			
 			// allocate memory once
-			byte input_port,output_port,analog_port,pwm_port;
+			byte output_port;
 			for(int i = 0; i<NUM_PORTS; i++)
 			{
 				// reset temporary port mask
-				input_port=output_port=analog_port=pwm_port=0x00;
+				output_port=0x00;
 				
 				// Build the mask
 				for (int bit=0; bit<8; bit++)
@@ -191,53 +232,30 @@ namespace VVVV.Nodes
 					if(src_index<PinModeSetup.SliceCount)
 					{
 						mode = PinModeSetup[src_index];
-						config_command.Enqueue(FirmataCommands.SETPINMODE);
-						config_command.Enqueue((byte) src_index);
-						config_command.Enqueue((byte) mode);
+						CommandBuffer.Enqueue(FirmataCommands.SETPINMODE);
+						CommandBuffer.Enqueue((byte) src_index);
+						CommandBuffer.Enqueue((byte) mode);
 					}
 					
-					input_port  |= (byte)((mode == PinModes.INPUT  ? 1:0)<<bit);
 					output_port |= (byte)((mode == PinModes.OUTPUT ? 1:0)<<bit);
-					analog_port |= (byte)((mode == PinModes.ANALOG ? 1:0)<<bit);
-					pwm_port    |= (byte)((mode == PinModes.PWM    ? 1:0)<<bit);
-					
-					/// TODO: If we have a servo, we should send a default config to the command queue
 				}
 				OUTPUT_PORT_MASKS[i] = output_port;
-				
-				/// These are not needed actually...
-				INPUT_PORT_MASKS.Enqueue(input_port);
-				ANALOG_PORT_MASKS.Enqueue(analog_port);
-				PWM_PORT_MASKS.Enqueue(pwm_port);
-				
 			}
-			
 			
 			// Pin have been configured once:
 			PINS_CONFIGURED = true;
 			
 			// Signal change
 			PIN_CONFIG_CHANGED = true;
-			
-			return Encoder.GetString(config_command.ToArray());
 		}
 		
-		/// Use ANSI Encoding!
-		static Encoding Encoder = Encoding.GetEncoding(1252);
 		
-		/* This is a shortcut to encode byte arrays, which also contain bytes higer than 127 */
-		static string Encode(byte[] bytes) {
-			return Encoder.GetString(bytes);
-		}
 		
-		static string SetPinModeCommand(PinModes mode, int pin)
+		void SetPinModeCommand(PinModes mode, int pin)
 		{
-			byte[] cmd = {
-				FirmataCommands.SETPINMODE,
-				(byte) pin,
-				(byte) mode
-			};
-			return Encoder.GetString(cmd);
+			CommandBuffer.Enqueue(FirmataCommands.SETPINMODE);
+			CommandBuffer.Enqueue((byte) pin);
+			CommandBuffer.Enqueue((byte) mode);
 		}
 		
 		static int PortIndexForPin(int pin)
@@ -245,13 +263,8 @@ namespace VVVV.Nodes
 			return pin/8;
 		}
 		
-		string SetPinStates(ISpread<double> values)
+		void SetPinStates(ISpread<double> values)
 		{
-			// TODO: handle PWM set pins!
-			// Maybe this should return an object like Ports.ANALOG, PORTS.DIGITAL
-			
-			Queue<byte> cmd = new Queue<byte>();
-			
 			// get the number of output ports
 			int[] digital_out = new int[OUTPUT_PORT_MASKS.Length];
 			
@@ -267,9 +280,9 @@ namespace VVVV.Nodes
 					byte LSB,MSB;
 					value *= mode==PinModes.SERVO ? 180 : 255; // servo is in degrees
 					GetBytesFromValue((int)value,out MSB,out LSB);
-					cmd.Enqueue((byte)(FirmataCommands.ANALOGMESSAGE | i));
-					cmd.Enqueue(LSB);
-					cmd.Enqueue(MSB);
+					CommandBuffer.Enqueue((byte)(FirmataCommands.ANALOGMESSAGE | i));
+					CommandBuffer.Enqueue(LSB);
+					CommandBuffer.Enqueue(MSB);
 					break;
 					
 					case PinModes.OUTPUT:
@@ -292,76 +305,59 @@ namespace VVVV.Nodes
 				byte atmega_port = ATMegaPorts.getPortForIndex(port_index);
 				GetBytesFromValue(digital_out[port_index],out MSB,out LSB);
 				
-				cmd.Enqueue((byte)(FirmataCommands.DIGITALMESSAGE | atmega_port));
-				cmd.Enqueue(LSB);
-				cmd.Enqueue(MSB);
+				CommandBuffer.Enqueue((byte)(FirmataCommands.DIGITALMESSAGE | atmega_port));
+				CommandBuffer.Enqueue(LSB);
+				CommandBuffer.Enqueue(MSB);
 				
 			}
-			
-			return Encoder.GetString(cmd.ToArray());
 		}
 		
 		
-		static string GetSamplerateCommand(int rate)
+		void GetSamplerateCommand(int rate)
 		{
 			byte lsb,msb;
 			GetBytesFromValue(rate,out msb,out lsb);
-			
-			byte[] cmd = {
-				FirmataCommands.SYSEX_START,
-				FirmataCommands.SAMPLING_INTERVAL,
-				lsb,msb,
-				FirmataCommands.SYSEX_END
-			};
-			return Encode(cmd);
+			CommandBuffer.Enqueue(FirmataCommands.SYSEX_START);
+			CommandBuffer.Enqueue(FirmataCommands.SAMPLING_INTERVAL);
+			CommandBuffer.Enqueue(lsb);
+			CommandBuffer.Enqueue(msb);
+			CommandBuffer.Enqueue(FirmataCommands.SYSEX_END);
 		}
 		
 		
 		/// Query Firmware Name and Version
-		static string GetFirmwareVersionCommand()
+		void GetFirmwareVersionCommand()
 		{
-			byte[] cmd = {
-				FirmataCommands.SYSEX_START,
-				FirmataCommands.REPORT_FIRMWARE_VERSION_NUM,
-				FirmataCommands.SYSEX_END
-			};
-			return Encode(cmd);
+			CommandBuffer.Enqueue(FirmataCommands.SYSEX_START);
+			CommandBuffer.Enqueue(FirmataCommands.REPORT_FIRMWARE_VERSION_NUM);
+			CommandBuffer.Enqueue(FirmataCommands.SYSEX_END);
 		}
 		
-		static string GetAnalogPinReportingCommandForState(bool state,int pin)
+		void GetAnalogPinReportingCommandForState(bool state,int pin)
 		{
-			byte val,command;
-			val = (byte) (state ? 0x01 : 0x00);
-			command = (byte)(FirmataCommands.TOGGLEANALOGREPORT|pin);
-			byte[] cmd = {command, val};
-			return Encode(cmd);
+			byte val = (byte) (state ? 0x01 : 0x00);
+			CommandBuffer.Enqueue((byte)(FirmataCommands.TOGGLEANALOGREPORT|pin));
+			CommandBuffer.Enqueue(val);
 		}
 		
-		static string SetAnalogPinReportingForRange(int range, bool state)
+		void SetAnalogPinReportingForRange(int range, bool state)
 		{
-			string command_out = "";
 			for(int i = 0; i<range; i++)
-			command_out += GetAnalogPinReportingCommandForState(state,i);
-			return command_out;
+			GetAnalogPinReportingCommandForState(state,i);
 		}
 		
-		static string GetDigitalPinReportingCommandForState(bool state,int port)
+		void GetDigitalPinReportingCommandForState(bool state,int port)
 		{
-			byte val,command;
-			val = (byte) (state ? 0x01 : 0x00);
-			command = (byte)(FirmataCommands.TOGGLEDIGITALREPORT|port);
-			byte[] cmd = {command, val};
-			return Encode(cmd);
+			byte val = (byte) (state ? 0x01 : 0x00);
+			CommandBuffer.Enqueue((byte)(FirmataCommands.TOGGLEDIGITALREPORT|port));
+			CommandBuffer.Enqueue(val);
 		}
 		
-		static string GetResetCommand()
+		void GetResetCommand()
 		{
-			byte[] cmd = {
-				FirmataCommands.SYSEX_START,
-				FirmataCommands.RESET,
-				FirmataCommands.SYSEX_END
-			};
-			return Encode(cmd);
+			CommandBuffer.Enqueue(FirmataCommands.SYSEX_START);
+			CommandBuffer.Enqueue(FirmataCommands.RESET);
+			CommandBuffer.Enqueue(FirmataCommands.SYSEX_END);
 		}
 		
 		/// <summary>
@@ -403,7 +399,6 @@ namespace VVVV.Nodes
 	}
 	
 	#region DEFINITIONS
-	
 	public static class FirmataCommands
 	{
 		/// <summary>
