@@ -1,3 +1,53 @@
+#region Copyright notice
+/*
+A Firmata Plugin for VVVV
+----------------------------------
+Encoding control and configuration messages for Firmata enabled MCUs. This
+Plugin encodes to a ANSI string and a byte array, so you can send via any
+interface, most likely RS-232 a.k.a. Comport to a - most likely - Arduino.
+
+For more information on Firmata see: http://firmata.org
+Get the source here: https://github.com/jens-a-e/VirmataEncoder
+Any issues should be posted here: https://github.com/jens-a-e/VirmataEncoder/issues
+
+Copyleft 2011
+Jens Alexander Ewald, http://ififelse.net
+Chris Engler, http://wirmachenbunt.de
+
+Inspired by the Sharpduino project by Tasos Valsamidis (LSB and MSB operations)
+See http://code.google.com/p/sharpduino if interested.
+
+
+Copyright notice
+----------------
+
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>
+*/
+#endregion
+
 #region usings
 using System;
 using System.ComponentModel.Composition;
@@ -8,15 +58,19 @@ using VVVV.Utils.VColor;
 using VVVV.Utils.VMath;
 
 using VVVV.Core.Logging;
+
+using Firmata;
+using System.Collections.Generic;
+
 #endregion usings
 
 namespace VVVV.Nodes
 {
 	#region PluginInfo
 	[PluginInfo(Name = "FirmataDecode",
-	Category = "Devices",
-	Help = "decodes the firmata2.2 protocol",
-	Tags = "")]
+	Category = "Devices Firmata v2.2",
+	Help = "Decodes the firmata protocol version 2.2",
+	Tags = "Devices,Encoders")]
 	#endregion PluginInfo
 	public class FirmataDecode : IPluginEvaluate
 	{
@@ -24,10 +78,10 @@ namespace VVVV.Nodes
 		[Input("FirmataMessage")]
 		IDiffSpread<String> ansiMessage;
 		
-		[Input("AnalogInputCount",DefaultValue = 6, Visibility = PinVisibility.OnlyInspector)]
+		[Input("AnalogInputCount",DefaultValue = 6, Visibility = PinVisibility.OnlyInspector, IsSingle = true)]
 		ISpread<int> analogInputCount;
 		
-		[Input("DigitalInputCount",DefaultValue = 12, Visibility = PinVisibility.OnlyInspector)]
+		[Input("DigitalInputCount",DefaultValue = 14, Visibility = PinVisibility.OnlyInspector, IsSingle = true)]
 		ISpread<int> digitalInputCount;
 		
 		[Output("AnalogIn")]
@@ -36,74 +90,175 @@ namespace VVVV.Nodes
 		[Output("DigitalIn")]
 		ISpread<int> digitalIns;
 		
+		[Output("FirmwareMajorVersion",Visibility = PinVisibility.Hidden)]
+		ISpread<int> FirmwareMajorVersion;
+		
+		[Output("FirmwareMinorVersion",Visibility = PinVisibility.Hidden)]
+		ISpread<int> FirmwareMinorVersion;
+		
+		[Output("FirmwareName",Visibility = PinVisibility.OnlyInspector)]
+		ISpread<string> FirmwareName;
+		
+		[Output("FirmwareVersion")]
+		ISpread<string> FirmwareVersion;
+		
+		[Output("I2CData",Visibility = PinVisibility.OnlyInspector)]
+		ISpread<byte> I2CData;
+		
 		[Import()]
 		ILogger FLogger;
 		#endregion fields & pins
 		
+		Queue<byte> buffer = new Queue<byte>();
+		
 		//called when data for any output pin is requested
 		public void Evaluate(int SpreadMax)
 		{
+			analogIns.SliceCount  = analogInputCount[0];
+			digitalIns.SliceCount = digitalInputCount[0];
 			
-			int numberOfAnalogs = 6;
-			analogIns.SliceCount = numberOfAnalogs;
-			
-		
-			if(ansiMessage.SliceCount>0 && ansiMessage.IsChanged == true )
-			{
-				byte[] byteMessage = new byte[numberOfAnalogs];
-				byteMessage = Encoding.GetEncoding(1252).GetBytes(ansiMessage[0]);
-				string fullStringMessage = PrepareMessage(byteMessage,numberOfAnalogs);
-				GetSetAnalogIns(fullStringMessage,numberOfAnalogs);	
-				
+			/// Using a Queue and iterate over it (nice to handle and inexpensive)
+			foreach (byte b in Encoding.GetEncoding(1252).GetBytes(ansiMessage[0])) {
+				// we should check for max buffer size and not constantly enque things...
+				buffer.Enqueue(b);
 			}
 			
+			// A cache for sysex data
+			Queue<byte> cache = new Queue<byte>();
+			// A flag if parsing sysex data
+			bool bIsSysex = false;
 			
-		}
-		
-		
-		// Helper Functions
-		
-		
-		static int GetValueFromBytes(byte MSB, byte LSB)
-		{
-			int tempValue = MSB & 0x7F;
-			tempValue = tempValue << 7;
-			tempValue = tempValue | (LSB & 0x7F);
-			return tempValue;
-		}
-		
-		static string PrepareMessage(byte[] byteMessage, int MessageLenght)
-		{
-			
-			// decoding to int16 as string like E0 E1 for analog pins ID
-			string[] stringMessage = new string[byteMessage.Length];
-			for (int i = 0; i < byteMessage.Length; i++) stringMessage[i] = byteMessage[i].ToString("X2");
-			string fullStringMessage = string.Join(".", stringMessage);
-			return fullStringMessage;
-		}
-		
-		void GetSetAnalogIns(string Message, int NumberOfAnalogs)
-		{
-			for (int i = 0; i < NumberOfAnalogs; i++)
-			{
-				
-				int firstCharacter = Message.IndexOf("E" + Convert.ToString(i),0);
-				int checkLenght = Message.Length - firstCharacter;	
-			
-				if (checkLenght > 12 && firstCharacter != -1){
-				
-				string MSB = Message.Substring(firstCharacter+3,2);	
-				string LSB = Message.Substring(firstCharacter+6,2);
-					
-				int analogValues = GetValueFromBytes(Convert.ToByte(LSB,16),Convert.ToByte(MSB,16));	
-				analogIns[i] = analogValues;
+			// PARSE:
+			while (buffer.Count > 0) {
+				byte current = buffer.Dequeue();
+				switch(current){
+					case Command.SYSEX_START:
+					case Command.SYSEX_END:
+					//            byte cmd = buffer.Dequeue();
+					if (current == Command.SYSEX_START)
+					bIsSysex = true;
+					else if(current == Command.SYSEX_END) {
+						// Process the Sysexdata:
+						ProcessSysex(cache);
+						bIsSysex = false;
+					}
+					cache.Clear();
+					break;
+					default:
+					if (bIsSysex) {
+						cache.Enqueue(current);
+					} else {
+						// Treat Ananlog & Digital Messages:
+						bool hasDigitalMessage = FirmataUtils.VerifiyCommand(current,Command.DIGITALMESSAGE);
+						bool hasAnalogMessage  = FirmataUtils.VerifiyCommand(current,Command.ANALOGMESSAGE);
+						// We have a data for commands
+						if(buffer.Count >= 2 && (hasDigitalMessage || hasAnalogMessage))
+						{
+							// Reihenfolge matters!
+							byte[] data = {current, buffer.Dequeue(),buffer.Dequeue()};
+							// Check for Analog Command
+							if (hasAnalogMessage) {
+								int pinNum,value;
+								FirmataUtils.DecodeAnalogMessage(data,out pinNum,out value);
+								if (pinNum < analogInputCount[0])
+								analogIns[pinNum] = value; // assign the found value to the spread
+							}
+							else if (hasDigitalMessage) {
+								int port; int[] vals;
+								// Decode the values from the bytes:
+								FirmataUtils.DecodePortMessage(data,out port, out vals);
+								// Fill the spread with parsed pinstates
+								for (int i=0; i<Constants.BitsPerPort; i++) {
+									int pinNum = i+Constants.BitsPerPort*port;
+									if ( pinNum < digitalIns.SliceCount)
+									digitalIns[pinNum] = vals[i];
+								}
+							}
+						}
+					}
+					break;
 				}
-				
 			}
 		}
 		
+		void ProcessSysex(Queue<byte> data) {
+			if(data.Count == 0 ) return;
+			
+			switch(data.Dequeue()){
+				/// Handle Firmwareversion replies:
+				case Command.REPORT_FIRMWARE_VERSION:
+				if (data.Count < 2) break;
+				int major = data.Dequeue();
+				int minor = data.Dequeue();
+				// Read the name, of the Version
+				StringBuilder name = new StringBuilder();
+				while(data.Count >= 2){
+					byte lsb = (byte)(data.Dequeue() & 0x7F);
+					byte msb = (byte)((data.Dequeue() & 0x7F) << 7);
+					byte[] both = {(byte)(lsb|msb)};
+					if(lsb!=0 || msb!=0)
+						name.Append(Encoding.ASCII.GetString(both));
+				}
+				string the_name = major+"."+minor;
+				if(name.Length>0) the_name += " "+name.ToString();
+				
+				FirmwareMajorVersion[0] = major;
+				FirmwareMinorVersion[0] = minor;
+				FirmwareName[0] = name.ToString();
+				FirmwareVersion[0] = the_name;
+				break;
+				
+				/// Handle I2C replies
+				case Command.I2C_REPLY:
+				I2CData.AssignFrom(data);
+				break;
+				
+				// Todo: Implement Capability reports!
+			}
+		}
 		
 	}
 	
 	
+	
+		#region PluginInfo
+	[PluginInfo(Name = "I2CDecode",
+	Category = "Devices Firmata v2.2",
+	Help = "Makes I2C data avaiable to pins...",
+	Tags = "Devices,Decoders")]
+	#endregion PluginInfo
+	public class I2CDecode : IPluginEvaluate
+	{
+		[Input("I2CData")]
+		IDiffSpread<byte> Data;
+
+		[Input("Address")]
+		IDiffSpread<int> Address;
+		
+		[Output("Register",DefaultValue = 0)]
+		ISpread<int> ParsedRegister;
+
+		[Output("Data",DefaultValue = 0)]
+		ISpread<int> ParsedData;
+		
+		public void Evaluate(int maxSpread){
+			if (Data.IsChanged)
+			{
+				if(Data.SliceCount<2) return;
+				
+				int _address = FirmataUtils.GetValueFromBytes(Data[1],Data[0]);
+				if(_address!=Address[0] && Data.SliceCount<4) return;
+				
+				int[] empty = {};
+				ParsedRegister.AssignFrom(empty);
+				ParsedData.AssignFrom(empty);
+				
+				for(int i=2; i<Data.SliceCount-4; i+=4){
+					ParsedRegister.Add(FirmataUtils.GetValueFromBytes(Data[i+1],Data[i]));
+					ParsedData.Add(FirmataUtils.GetValueFromBytes(Data[i+3],Data[i+2]));
+				}
+			}
+		}
+	}
+
 }
