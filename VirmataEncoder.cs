@@ -63,6 +63,93 @@ using Firmata;
 
 namespace VVVV.Nodes
 {
+	#region EXPERIMENTAL NODES!!!
+	/// NOT USED!
+	#region PluginInfo
+	[PluginInfo(Name = "FirmataPort (Encode)",
+	Category = "Devices",
+	Version = "Firmata v2.2",
+	Help = "Represents a Digital Port with 8 I/O s (Protocol v2.2)",
+	Tags = "Devices,Encoders")]
+	#endregion PluginInfo
+	
+	public class FirmataPort : IPluginEvaluate
+	{
+		
+		[Input("Port", DefaultValue = 0)]
+		IDiffSpread<int> Port;
+		
+		[Input("Values")]
+		IDiffSpread<int> Value;
+		
+		[Output("Data")]
+		ISpread<string> Out;
+		
+		public void Evaluate(int SpreadMax)
+		{
+			if (Port.IsChanged || Value.IsChanged)
+			{
+				List<int> val = new List<int>();
+				val.AddRange(Value.GetRange(0,8));
+				Out[0] = Encoding.GetEncoding(1252).GetString(Firmata.FirmataUtils.PortMessage(Port[0],val.ToArray()));
+			}
+		}
+	}
+	
+	
+	#region PluginInfo
+	[PluginInfo(Name = "FirmataPort (Decode)",
+	Category = "Devices",
+	Version = "Firmata v2.2",
+	Help = "Represents a Digital Port with 8 I/O s (Protocol v2.2)",
+	Tags = "Devices,Encoders")]
+	#endregion PluginInfo
+	
+	public class FirmataPortDecode : IPluginEvaluate
+	{
+		
+		[Input("Input")]
+		IDiffSpread<string> In;
+		
+		[Input("PortNumber")]
+		IDiffSpread<int> PortNumber;
+		
+		[Output("Values")]
+		ISpread<int> Values;
+		ISpread<int> CachedValues;
+		
+		[Output("Port")]
+		ISpread<int> Port;
+		
+		public void Evaluate(int SpreadMax)
+		{
+			if (In.IsChanged)
+			{
+				Values.SliceCount = PortNumber.SliceCount * 8; // 8 bits per port
+				Port.SliceCount   = PortNumber.SliceCount;
+				
+				foreach (string msg in In){
+					byte[] data = Encoding.GetEncoding(1252).GetBytes(msg);
+					if(!FirmataUtils.ContainsCommand(data,Command.DIGITALMESSAGE)) {
+						continue; //
+					}
+					int port;
+					int[] values;
+					if (FirmataUtils.DecodePortMessage(data, out port, out values))
+					{
+						Port[0] = port;
+						Values.AssignFrom(values);
+						CachedValues = Values.Clone();
+					} else {
+						Values = CachedValues.Clone();
+					}
+				}
+				
+			}
+		}
+	}
+	
+	#endregion
 	
 	#region PluginInfo
 	[PluginInfo(Name = "FirmataEncode",
