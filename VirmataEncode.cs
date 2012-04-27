@@ -164,7 +164,7 @@ namespace VVVV.Nodes
 
 			FChangedOut[0] = CommandBuffer.Count>0;
 			FRawOut[0]     = CommandBuffer.ToArray();
-			FFirmataOut[0] = Encoder.GetString(RawOut[0]);
+			FFirmataOut[0] = Encoder.GetString(FRawOut[0]);
 		}
 
 		#region Helper Functions
