@@ -45,7 +45,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
-*/
+ */
 #endregion
 
 #region usings
@@ -68,59 +68,59 @@ namespace VVVV.Nodes
 {
 	#region PluginInfo
 	[PluginInfo(Name = "FirmataDecode",
-	Category = "Devices Firmata v2.2",
-	Help = "Decodes the firmata protocol version 2.2",
-	Tags = "Devices,Encoders")]
+	            Category = "Devices Firmata v2.2",
+	            Help = "Decodes the firmata protocol version 2.2",
+	            Tags = "Devices,Encoders")]
 	#endregion PluginInfo
 	public class FirmataDecode : IPluginEvaluate
 	{
 		#region fields & pins
-		[Input("FirmataMessage")]
-		IDiffSpread<String> ansiMessage;
+		[Input("Firmata Message")]
+		IDiffSpread<String> FAnsiMessage;
 		
-		[Input("AnalogInputCount",DefaultValue = 6, Visibility = PinVisibility.OnlyInspector, IsSingle = true)]
-		ISpread<int> analogInputCount;
+		[Input("Analog Input Count",DefaultValue = 6, Visibility = PinVisibility.OnlyInspector, IsSingle = true)]
+		ISpread<int> FAnalogInputCount;
 		
-		[Input("DigitalInputCount",DefaultValue = 14, Visibility = PinVisibility.OnlyInspector, IsSingle = true)]
-		ISpread<int> digitalInputCount;
+		[Input("Digital Input Count",DefaultValue = 14, Visibility = PinVisibility.OnlyInspector, IsSingle = true)]
+		ISpread<int> FDigitalInputCount;
 		
-		[Output("AnalogIn")]
-		ISpread<int> analogIns;
+		[Output("Analog In")]
+		ISpread<int> FAnalogIns;
 		
-		[Output("DigitalIn")]
-		ISpread<int> digitalIns;
+		[Output("Digital In")]
+		ISpread<int> FDigitalIns;
 		
-		[Output("FirmwareMajorVersion",Visibility = PinVisibility.Hidden)]
-		ISpread<int> FirmwareMajorVersion;
+		[Output("Firmware Major Version",Visibility = PinVisibility.Hidden)]
+		ISpread<int> FFirmwareMajorVersion;
 		
-		[Output("FirmwareMinorVersion",Visibility = PinVisibility.Hidden)]
-		ISpread<int> FirmwareMinorVersion;
+		[Output("Firmware Minor Version",Visibility = PinVisibility.Hidden)]
+		ISpread<int> FFirmwareMinorVersion;
 		
-		[Output("FirmwareName",Visibility = PinVisibility.OnlyInspector)]
-		ISpread<string> FirmwareName;
+		[Output("Firmware Name",Visibility = PinVisibility.OnlyInspector)]
+		ISpread<string> FFirmwareName;
 		
-		[Output("FirmwareVersion")]
-		ISpread<string> FirmwareVersion;
+		[Output("Firmware Version")]
+		ISpread<string> FFirmwareVersion;
 		
-		[Output("I2CData",Visibility = PinVisibility.OnlyInspector)]
-		ISpread<byte> I2CData;
+		[Output("I2C Data",Visibility = PinVisibility.OnlyInspector)]
+		ISpread<byte> FI2CData;
 		
 		[Import()]
 		ILogger FLogger;
 		#endregion fields & pins
 		
-		Queue<byte> buffer = new Queue<byte>();
+		private Queue<byte> Buffer = new Queue<byte>();
 		
 		//called when data for any output pin is requested
 		public void Evaluate(int SpreadMax)
 		{
-			analogIns.SliceCount  = analogInputCount[0];
-			digitalIns.SliceCount = digitalInputCount[0];
+			FAnalogIns.SliceCount  = FAnalogInputCount[0];
+			FDigitalIns.SliceCount = FDigitalInputCount[0];
 			
 			/// Using a Queue and iterate over it (nice to handle and inexpensive)
-			foreach (byte b in Encoding.GetEncoding(1252).GetBytes(ansiMessage[0])) {
+			foreach (byte b in Encoding.GetEncoding(1252).GetBytes(FAnsiMessage[0])) {
 				// we should check for max buffer size and not constantly enque things...
-				buffer.Enqueue(b);
+				Buffer.Enqueue(b);
 			}
 			
 			// A cache for sysex data
@@ -129,54 +129,51 @@ namespace VVVV.Nodes
 			bool bIsSysex = false;
 			
 			// PARSE:
-			while (buffer.Count > 0) {
-				byte current = buffer.Dequeue();
+			while (Buffer.Count > 0) {
+				byte current = Buffer.Dequeue();
 				switch(current){
 					case Command.SYSEX_START:
 					case Command.SYSEX_END:
-					//            byte cmd = buffer.Dequeue();
-					if (current == Command.SYSEX_START)
-					bIsSysex = true;
-					else if(current == Command.SYSEX_END) {
-						// Process the Sysexdata:
-						ProcessSysex(cache);
-						bIsSysex = false;
-					}
-					cache.Clear();
-					break;
+						if (current == Command.SYSEX_START)
+							bIsSysex = true;
+						else if(current == Command.SYSEX_END) {
+							// Process the Sysexdata:
+							ProcessSysex(cache);
+							bIsSysex = false;
+						}
+						cache.Clear();
+						break;
 					default:
-					if (bIsSysex) {
-						cache.Enqueue(current);
-					} else {
-						// Treat Ananlog & Digital Messages:
-						bool hasDigitalMessage = FirmataUtils.VerifiyCommand(current,Command.DIGITALMESSAGE);
-						bool hasAnalogMessage  = FirmataUtils.VerifiyCommand(current,Command.ANALOGMESSAGE);
-						// We have a data for commands
-						if(buffer.Count >= 2 && (hasDigitalMessage || hasAnalogMessage))
-						{
-							// Reihenfolge matters!
-							byte[] data = {current, buffer.Dequeue(),buffer.Dequeue()};
-							// Check for Analog Command
-							if (hasAnalogMessage) {
-								int pinNum,value;
-								FirmataUtils.DecodeAnalogMessage(data,out pinNum,out value);
-								if (pinNum < analogInputCount[0])
-								analogIns[pinNum] = value; // assign the found value to the spread
-							}
-							else if (hasDigitalMessage) {
-								int port; int[] vals;
-								// Decode the values from the bytes:
-								FirmataUtils.DecodePortMessage(data,out port, out vals);
-								// Fill the spread with parsed pinstates
-								for (int i=0; i<Constants.BitsPerPort; i++) {
-									int pinNum = i+Constants.BitsPerPort*port;
-									if ( pinNum < digitalIns.SliceCount)
-									digitalIns[pinNum] = vals[i];
+						if (bIsSysex) { // Collect bytes for the SysSex message cache
+							cache.Enqueue(current);
+						} else {
+							// Treat Ananlog & Digital Messages:
+							bool hasDigitalMessage = FirmataUtils.VerifiyCommand(current,Command.DIGITALMESSAGE);
+							bool hasAnalogMessage  = FirmataUtils.VerifiyCommand(current,Command.ANALOGMESSAGE);
+							// We have a data for commands
+							if(Buffer.Count >= 2 && (hasDigitalMessage || hasAnalogMessage))
+							{
+								// Reihenfolge matters!
+								byte[] data = {current, Buffer.Dequeue(),Buffer.Dequeue()};
+								// Check for Analog Command
+								if (hasAnalogMessage) {
+									int pinNum,value;
+									FirmataUtils.DecodeAnalogMessage(data,out pinNum,out value);
+									if (pinNum < FAnalogInputCount[0]) FAnalogIns[pinNum] = value; // assign the found value to the spread
+								}
+								else if (hasDigitalMessage) {
+									int port; int[] vals;
+									// Decode the values from the bytes:
+									FirmataUtils.DecodePortMessage(data,out port, out vals);
+									// Fill the spread with parsed pinstates
+									for (int i=0; i<Constants.BitsPerPort; i++) {
+										int pinNum = i+Constants.BitsPerPort*port;
+										if ( pinNum < FDigitalIns.SliceCount) FDigitalIns[pinNum] = vals[i];
+									}
 								}
 							}
 						}
-					}
-					break;
+						break;
 				}
 			}
 		}
@@ -185,34 +182,34 @@ namespace VVVV.Nodes
 			if(data.Count == 0 ) return;
 			
 			switch(data.Dequeue()){
-				/// Handle Firmwareversion replies:
+					/// Handle Firmwareversion replies:
 				case Command.REPORT_FIRMWARE_VERSION:
-				if (data.Count < 2) break;
-				int major = data.Dequeue();
-				int minor = data.Dequeue();
-				// Read the name, of the Version
-				StringBuilder name = new StringBuilder();
-				while(data.Count >= 2){
-					byte lsb = (byte)(data.Dequeue() & 0x7F);
-					byte msb = (byte)((data.Dequeue() & 0x7F) << 7);
-					byte[] both = {(byte)(lsb|msb)};
-					if(lsb!=0 || msb!=0)
-						name.Append(Encoding.ASCII.GetString(both));
-				}
-				string the_name = major+"."+minor;
-				if(name.Length>0) the_name += " "+name.ToString();
-				
-				FirmwareMajorVersion[0] = major;
-				FirmwareMinorVersion[0] = minor;
-				FirmwareName[0] = name.ToString();
-				FirmwareVersion[0] = the_name;
-				break;
-				
-				/// Handle I2C replies
+					if (data.Count < 2) break;
+					int major = data.Dequeue();
+					int minor = data.Dequeue();
+					// Read the name, of the Version
+					StringBuilder name = new StringBuilder();
+					while(data.Count >= 2){
+						byte lsb = (byte)(data.Dequeue() & 0x7F);
+						byte msb = (byte)((data.Dequeue() & 0x7F) << 7);
+						byte[] both = {(byte)(lsb|msb)};
+						if(lsb!=0 || msb!=0)
+							name.Append(Encoding.ASCII.GetString(both));
+					}
+					string the_name = major+"."+minor;
+					if(name.Length>0) the_name += " "+name.ToString();
+					
+					FFirmwareMajorVersion[0] = major;
+					FFirmwareMinorVersion[0] = minor;
+					FFirmwareName[0] = name.ToString();
+					FFirmwareVersion[0] = the_name;
+					break;
+					
+					/// Handle I2C replies
 				case Command.I2C_REPLY:
-				I2CData.AssignFrom(data);
-				break;
-				
+					FI2CData.AssignFrom(data);
+					break;
+					
 				// Todo: Implement Capability reports!
 			}
 		}
@@ -221,11 +218,11 @@ namespace VVVV.Nodes
 	
 	
 	
-		#region PluginInfo
+	#region PluginInfo
 	[PluginInfo(Name = "I2CDecode",
-	Category = "Devices Firmata v2.2",
-	Help = "Makes I2C data avaiable to pins...",
-	Tags = "Devices,Decoders")]
+	            Category = "Devices Firmata v2.2",
+	            Help = "Makes I2C data avaiable to pins...",
+	            Tags = "Devices,Decoders")]
 	#endregion PluginInfo
 	public class I2CDecode : IPluginEvaluate
 	{
