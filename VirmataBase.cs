@@ -59,44 +59,9 @@ using System.Text;
 
 namespace Firmata
 {
-	#region MessageFormats
-	public class AnalogMessage {
-		
-	}
-	
-	public class DigitalMessage {
-		public byte[] data {
-			private set{}
-			get {
-				return FirmataUtils.PortMessage(port,state);
-			}
-		}
-		
-		public int port {get;set;}
-		
-		public int[] state {get;set;}
-		
-		public DigitalMessage() : this(0,new int[8]){
-//			this.port = 0;
-//			this.state = new int[8];
-		}
-		
-		public DigitalMessage(int port, int[] state)
-		{
-			this.port  = 123;
-			this.state = state;
-		}
-		
-		public string ToString(Encoding Encoder) {
-			return Encoder.GetString(data);
-		}
-	}
-	
-	#endregion
-	
 	#region Static utils
 	public static class FirmataUtils {
-		
+
 		public static bool ContainsCommand(byte[] msg, byte cmd) {
 			bool hasCommand = false;
 			foreach (byte b in msg) {
@@ -188,8 +153,7 @@ namespace Firmata
 	}
 	
 	#endregion
-	
-	
+
 	#region Definitions
 	
 	public struct Command
@@ -315,7 +279,5 @@ namespace Firmata
 	}
 	
 	#endregion
-	
-	
-	
+
 }
