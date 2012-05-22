@@ -11,7 +11,7 @@ Installation & Use
 
 To use it with a standard Arduino, as this is the prefered use case, do the following:
 
-1) Upload the StandardFirmata (version 2.2) that somes with the Arduino IDE onto your board.
+1) Upload the StandardFirmata (at least version 2.2) that somes with the Arduino IDE onto your board.
 1.a) If you have a freshly purchased and never touched Arduino UNO board you mustlikely already have the standard Firmata uploaded already.
 2) Prepare some LED and other things to use and test with it.
 
