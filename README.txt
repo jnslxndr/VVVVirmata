@@ -4,7 +4,7 @@ Welcome to the Firmata Plugin for VVVV
 A straight forward implementation of the Firmata protocol for VVVV. See http://firmata.org for details on the protocol. This implementation is designed from the protocol, rather than from the Arduino board perspective. This enables it to easily interface with a Firmata prepared Arduino board with a StandardFirmata, but is not bound to this (e.g. other boards, other Firmata). Thus it can be extened with additional modules, rather than plugins to use other Firmata enabled hardware.
 
 This is still beta, but stable as far as we could test. Don't fear to report any issues or feature request to [the issues here on github](https://github.com/jens-a-e/VirmataEncoder/issues).
-hahahaha
+
 
 Installation & Use
 ******************
