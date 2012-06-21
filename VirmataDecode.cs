@@ -67,7 +67,7 @@ namespace VVVV.Nodes
 {
 	#region PluginInfo
 	[PluginInfo(Name = "FirmataDecode",
-				Version = "2",
+				Version = "2.x",
 	            Category = "Devices",
 	            Help = "Decodes the firmata protocol version 2.x",
 	            Tags = "Arduino")]
