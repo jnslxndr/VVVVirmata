@@ -1,18 +1,19 @@
 #region Copyright notice
 /*
-A Firmata Encoder Plugin for VVVV
+A Firmata Plugin for VVVV - v 1.0
 ----------------------------------
 Encoding control and configuration messages for Firmata enabled MCUs. This
 Plugin encodes to a ANSI string and a byte array, so you can send via any
 interface, most likely RS-232 a.k.a. Comport to a - most likely - Arduino.
 
 For more information on Firmata see: http://firmata.org
-Get the source here: https://github.com/jens-a-e/VirmataEncoder
-Any issues should be posted here: https://github.com/jens-a-e/VirmataEncoder/issues
+Get the source from: https://github.com/jens-a-e/VVVVirmata
+Any issues & feature requests should be posted to: https://github.com/jens-a-e/VVVVirmata/issues
 
 Copyleft 2011
 Jens Alexander Ewald, http://ififelse.net
 Chris Engler, http://wirmachenbunt.de
+Both: http://www.muthesius-kunsthochschule.de
 
 Inspired by the Sharpduino project by Tasos Valsamidis (LSB and MSB operations)
 See http://code.google.com/p/sharpduino if interested.
@@ -59,44 +60,9 @@ using System.Text;
 
 namespace Firmata
 {
-	#region MessageFormats
-	public class AnalogMessage {
-		
-	}
-	
-	public class DigitalMessage {
-		public byte[] data {
-			private set{}
-			get {
-				return FirmataUtils.PortMessage(port,state);
-			}
-		}
-		
-		public int port {get;set;}
-		
-		public int[] state {get;set;}
-		
-		public DigitalMessage() : this(0,new int[8]){
-//			this.port = 0;
-//			this.state = new int[8];
-		}
-		
-		public DigitalMessage(int port, int[] state)
-		{
-			this.port  = 123;
-			this.state = state;
-		}
-		
-		public string ToString(Encoding Encoder) {
-			return Encoder.GetString(data);
-		}
-	}
-	
-	#endregion
-	
 	#region Static utils
 	public static class FirmataUtils {
-		
+
 		public static bool ContainsCommand(byte[] msg, byte cmd) {
 			bool hasCommand = false;
 			foreach (byte b in msg) {
@@ -188,8 +154,7 @@ namespace Firmata
 	}
 	
 	#endregion
-	
-	
+
 	#region Definitions
 	
 	public struct Command
@@ -315,7 +280,5 @@ namespace Firmata
 	}
 	
 	#endregion
-	
-	
-	
+
 }
