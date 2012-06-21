@@ -1,5 +1,5 @@
 <!DOCTYPE PATCH  SYSTEM "http://vvvv.org/versions/vvvv45alpha28.dtd" >
-   <PATCH nodename="C:\Users\horst\DEV\vvvv-sdk\vvvv45\addonpack\lib\nodes\modules\Devices\Arduino (Devices StandardFirmata 2.2).v4p" filename="C:\Users\jens\devel\v4plugins\VirmataEncoder\Arduino (Devices StandardFirmata 2.2).v4p" systemname="Arduino (Devices StandardFirmata 2.2)">
+   <PATCH nodename="C:\Users\horst\DEV\vvvv-sdk\vvvv45\addonpack\lib\nodes\modules\Devices\Arduino (Devices StandardFirmata 2.x).v4p" filename="C:\Users\jens\devel\v4plugins\VirmataEncoder\Arduino (Devices StandardFirmata 2.x).v4p" systemname="Arduino (Devices StandardFirmata 2.x)">
    <BOUNDS height="11910" left="5310" top="120" type="Window" width="8985">
    </BOUNDS>
    <NODE componentmode="InABox" id="12" nodename="IOBox (Value Advanced)" systemname="IOBOX (VALUE ADVANCED)">
@@ -416,7 +416,7 @@
    </LINK>
    <LINK srcnodeid="24" srcpinname="Up Edge" dstnodeid="36" dstpinname="Input">
    </LINK>
-   <NODE componentmode="Hidden" filename="%VVVV%\addonpack\lib\nodes\plugins\Virmata.dll" hiddenwhenlocked="0" id="0" managers="" nodename="FirmataEncode (Devices)" systemname="FirmataEncode (Devices)">
+   <NODE componentmode="Hidden" filename="%VVVV%\addonpack\lib\nodes\plugins\Virmata.dll" hiddenwhenlocked="0" id="0" managers="" nodename="FirmataEncode (Devices 2.x)" systemname="FirmataEncode (Devices 2.x)">
    <PIN pinname="ReportDigitalPins" pintype="Input" visible="1">
    </PIN>
    <PIN pinname="PinModes" pintype="Input" visible="1">
