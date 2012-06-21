@@ -5,12 +5,12 @@
     <Platform>x86</Platform>
     <OutputType>Library</OutputType>
     <RootNamespace>VVVV.Nodes</RootNamespace>
-    <AssemblyName>VirmataEncoder</AssemblyName>
+    <AssemblyName>Virmata-2.x</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>build</OutputPath>
     <DebugSymbols>True</DebugSymbols>
     <DebugType>Full</DebugType>
-    <Optimize>False</Optimize>
+    <Optimize>True</Optimize>
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ReferencePath>$(VVVV45)\bin\managed\</ReferencePath>
