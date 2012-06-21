@@ -219,6 +219,7 @@ namespace VVVV.Nodes
 	#region PluginInfo
 	[PluginInfo(Name = "I2CDecode",
 	            Category = "Devices",
+              Version  = "2.x",
 	            Help = "Decodes I2C data from Firmata messages",
 	            Tags = "Firmata,Arduino")]
 	#endregion PluginInfo
