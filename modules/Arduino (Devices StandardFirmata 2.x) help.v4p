@@ -143,7 +143,7 @@
    </PIN>
    <PIN pinname="Y Input Value" slicecount="1" visible="1" values="0">
    </PIN>
-   <PIN pinname="X Input Value" slicecount="1" values="0.931818181818182">
+   <PIN pinname="X Input Value" slicecount="1" values="0.818181818181818">
    </PIN>
    <BOUNDS height="100" left="2730" top="4590" type="Node" width="100">
    </BOUNDS>
@@ -337,7 +337,7 @@
    </BOUNDS>
    <BOUNDS height="495" left="4185" top="7725" type="Box" width="480">
    </BOUNDS>
-   <PIN pinname="Y Input Value" slicecount="1" values="0">
+   <PIN pinname="Y Input Value" slicecount="1" values="1">
    </PIN>
    <PIN encoded="0" pinname="Units" slicecount="1" values="||">
    </PIN>
@@ -347,7 +347,7 @@
    </PIN>
    <PIN pinname="Behavior" slicecount="1" values="Toggle">
    </PIN>
-   <PIN pinname="X Input Value" slicecount="1" values="0">
+   <PIN pinname="X Input Value" slicecount="1" values="1">
    </PIN>
    </NODE>
    <LINK dstnodeid="116" dstpinname="Enable" srcnodeid="121" srcpinname="Y Output Value">
