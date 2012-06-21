@@ -28,8 +28,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VirmataBase.cs" />
-    <Compile Include="VirmataDecoder.cs" />
-    <Compile Include="VirmataEncoder.cs" />
     <Compile Include="VirmataDecode.cs" />
     <Compile Include="VirmataEncode.cs" />
   </ItemGroup>
