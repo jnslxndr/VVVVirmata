@@ -30,6 +30,8 @@
     <Compile Include="VirmataBase.cs" />
     <Compile Include="VirmataDecoder.cs" />
     <Compile Include="VirmataEncoder.cs" />
+    <Compile Include="VirmataDecode.cs" />
+    <Compile Include="VirmataEncode.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>
