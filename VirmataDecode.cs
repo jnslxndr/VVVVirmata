@@ -58,8 +58,6 @@ using VVVV.PluginInterfaces.V2;
 using VVVV.Utils.VColor;
 using VVVV.Utils.VMath;
 
-using VVVV.Core.Logging;
-
 using Firmata;
 using System.Collections.Generic;
 
@@ -69,9 +67,10 @@ namespace VVVV.Nodes
 {
 	#region PluginInfo
 	[PluginInfo(Name = "FirmataDecode",
-	            Category = "Devices Firmata v2.2",
-	            Help = "Decodes the firmata protocol version 2.2",
-	            Tags = "Devices,Encoders")]
+				Version = "2.x",
+	            Category = "Devices",
+	            Help = "Decodes the firmata protocol version 2.x",
+	            Tags = "Arduino")]
 	#endregion PluginInfo
 	public class FirmataDecode : IPluginEvaluate
 	{
@@ -106,8 +105,6 @@ namespace VVVV.Nodes
 		[Output("I2C Data",Visibility = PinVisibility.OnlyInspector)]
 		ISpread<byte> FI2CData;
 		
-		[Import()]
-		ILogger FLogger;
 		#endregion fields & pins
 		
 		private Queue<byte> Buffer = new Queue<byte>();
@@ -221,9 +218,9 @@ namespace VVVV.Nodes
 	
 	#region PluginInfo
 	[PluginInfo(Name = "I2CDecode",
-	            Category = "Devices Firmata v2.2",
-	            Help = "Makes I2C data avaiable to pins...",
-	            Tags = "Devices,Decoders")]
+	            Category = "Devices",
+	            Help = "Decodes I2C data from Firmata messages",
+	            Tags = "Firmata,Arduino")]
 	#endregion PluginInfo
 	public class I2CDecode : IPluginEvaluate
 	{

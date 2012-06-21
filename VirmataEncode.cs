@@ -56,7 +56,6 @@ using System.Collections.Generic;
 using System.Text;
 using VVVV.PluginInterfaces.V1;
 using VVVV.PluginInterfaces.V2;
-using VVVV.Core.Logging;
 using Firmata;
 #endregion usings
 
@@ -65,10 +64,10 @@ namespace VVVV.Nodes
 	
 	#region PluginInfo
 	[PluginInfo(Name = "FirmataEncode",
-	Category = "Devices",
-	Version = "Firmata v2.2",
-	Help = "Encodes pins, values and commands for Firmata (Protocol v2.2)",
-	Tags = "Devices,Encoders")]
+				Version = "2.x",
+				Category = "Devices",
+				Help = "Encodes pins, values and commands for Firmata protocol version 2.x",
+				Tags = "Arduino")]
 	#endregion PluginInfo
 
 	public class FirmataEncode : IPluginEvaluate
@@ -91,8 +90,8 @@ namespace VVVV.Nodes
 		[Input("Reset",IsSingle = true, IsBang=true, DefaultValue = 0)]
 		IDiffSpread<bool> FResetSystem;
 
-		//// Use a default SamplingRate of 40ms
-		[Input("Samplerate", MinValue = 0, DefaultValue = 40,IsSingle = true, Visibility = PinVisibility.Hidden)]
+		//// Use a default SamplingRate of 16ms
+		[Input("Samplerate", MinValue = 0, DefaultValue = 16,IsSingle = true, Visibility = PinVisibility.Hidden)]
 		IDiffSpread<int> FSamplerate;
 
 //		Not yet used!
@@ -119,9 +118,6 @@ namespace VVVV.Nodes
 
 		[Output("RAW", Visibility = PinVisibility.Hidden)]
 		ISpread<byte[]> FRawOut;
-
-		[Import()]
-		ILogger FLogger;
 
 		/// Use a Queue for a command byte buffer:
 		Queue<byte> CommandBuffer = new Queue<byte>(1024);
@@ -239,8 +235,9 @@ namespace VVVV.Nodes
 						CommandBuffer.Enqueue((byte) src_index);
 						CommandBuffer.Enqueue((byte) mode);
 					}
-
-					output_port |= (byte)((mode == PinMode.OUTPUT ? 1:0)<<bit);
+					// using both both modes, enables configuring 
+					// of pullup mode (thx! to motzi)
+					output_port |= (byte)(((mode == PinMode.OUTPUT || mode == PinMode.INPUT) ? 1:0)<<bit);
 				}
 				OUTPUT_PORT_MASKS[i] = output_port;
 			}
@@ -288,6 +285,7 @@ namespace VVVV.Nodes
 					break;
 
 					case PinMode.OUTPUT:
+					case PinMode.INPUT:   // fixes PullUp enabling issue, thx to motzi!
 					int port_index = PortIndexForPin(i);
 					// Break, if we have no ouputports we can get
 					if (port_index >= digital_out.Length) break;
