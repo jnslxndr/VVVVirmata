@@ -128,6 +128,11 @@ namespace VVVV.Nodes
 			// Clear the buffer before everey run
 			CommandBuffer.Clear();
 
+			if (ShouldReset) GetResetCommand();
+
+			if (FReportFirmwareVersion.IsChanged) GetFirmwareVersionCommand();
+
+			// TODO: Find out if we have pull-up configured input pins and if so, update the config too
 			if(FPinModeSetup.IsChanged || ShouldReset || !PINS_CONFIGURED) UpdatePinConfiguration();
 
 			if (FPinModeSetup.IsChanged || FPinValues.IsChanged || ShouldReset) SetPinStates(FPinValues);
@@ -154,10 +159,6 @@ namespace VVVV.Nodes
 				GetSamplerateCommand(FSamplerate[0]);
 				if (FReportAnalogPins[0]) SetAnalogPinReportingForRange(FAnalogInputCount[0],true);
 			}
-			
-			if (FReportFirmwareVersion.IsChanged) GetFirmwareVersionCommand();
-
-			if(FResetSystem.IsChanged && ShouldReset) GetResetCommand();
 
 			FChangedOut[0] = CommandBuffer.Count>0;
 			FRawOut[0]     = CommandBuffer.ToArray();
@@ -183,7 +184,12 @@ namespace VVVV.Nodes
 		bool PIN_CONFIG_CHANGED = false;
 
 		// Make a shortcut for FResetSystem[0]
-		bool ShouldReset { get {return FResetSystem[0];} set{} }
+		bool ShouldReset {
+			get {
+				return FResetSystem.IsChanged && FResetSystem[0];
+			}
+			set {}
+		}
 
 		/// <summary>
 		/// Calculate the total number of pins addressed with this node
