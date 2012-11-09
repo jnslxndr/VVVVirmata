@@ -65,7 +65,7 @@
    </PIN>
    <PIN pinname="On Data" visible="1">
    </PIN>
-   <PIN pinname="Do Send" visible="1">
+   <PIN pinname="Do Send" slicecount="1" visible="1" values="0">
    </PIN>
    <PIN pinname="Baud Rate" slicecount="1" visible="1" values="57600">
    </PIN>
