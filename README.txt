@@ -1,3 +1,5 @@
+This repo is frozen for historical reference. The current Firmata nodes live in the main VL package.
+
 Welcome to the Firmata Plugin for VVVV
 **************************************
 
